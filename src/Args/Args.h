@@ -1,0 +1,26 @@
+#ifndef ARGS_H
+#define ARGS_H
+
+#include "../Logger/Logger.h"
+#include <string>
+
+class Args {
+public:
+  Args(Logger &logger);
+
+  void parse_args(int argc, char *argv[]);
+
+  std::string chr_size_file_path;
+  std::string ref_intervals_file_path;
+  std::string query_intervals_file_path;
+  std::string output_file_path;
+
+private:
+  Logger &logger;
+
+  void log_failed_to_parse_args(const std::string &flag);
+  void log_invalid_arg(const std::string &flag);
+  void check_missing_args();
+};
+
+#endif // ARGS_H
