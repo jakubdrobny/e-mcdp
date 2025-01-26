@@ -49,9 +49,12 @@ std::string Logger::get_timestamp() {
   std::tm *now_tm = std::localtime(&now);
 
   std::ostringstream oss;
-  oss << (now_tm->tm_year + 1900) << "-" << std::format("{:02}", now_tm->tm_mon + 1) << "-"
-      << now_tm->tm_mday << " " << now_tm->tm_hour << ":" << now_tm->tm_min
-      << ":" << now_tm->tm_sec;
+  oss << (now_tm->tm_year + 1900) << "-" <<
+    std::format("{:02}", now_tm->tm_mon + 1) << "-" <<
+    std::format("{:02}", now_tm->tm_mday) << " " <<
+    std::format("{:02}", now_tm->tm_hour) << ":" <<
+    std::format("{:02}", now_tm->tm_min) << ":" <<
+    std::format("{:02}", now_tm->tm_sec);
   return oss.str();
 }
 
