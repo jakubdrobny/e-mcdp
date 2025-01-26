@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -Wall -O2
+CXXFLAGS := -Wall -O2 -std=c++20
 
 SOURCES := $(wildcard src/*.cpp) $(wildcard src/**/*.cpp)
 BIN := bin/e-mcdp

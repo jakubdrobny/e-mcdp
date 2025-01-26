@@ -2,6 +2,7 @@
 #include <ctime>
 #include <iostream>
 #include <sstream>
+#include <format>
 
 Logger::Logger(const std::string &output_path) {
   if (!output_path.empty()) {
@@ -22,7 +23,7 @@ Logger::~Logger() {
 
 void Logger::log(Level level, const std::string &message) {
   std::string log_entry =
-      "[" + get_timestamp() + "] [" + level_to_string(level) + "] " + message;
+      "[" + get_timestamp() + "] - [" + level_to_string(level) + "]\t- " + message;
 
   if (log_to_file) {
     file_output << log_entry << std::endl;
@@ -48,7 +49,7 @@ std::string Logger::get_timestamp() {
   std::tm *now_tm = std::localtime(&now);
 
   std::ostringstream oss;
-  oss << (now_tm->tm_year + 1900) << "-" << (now_tm->tm_mon + 1) << "-"
+  oss << (now_tm->tm_year + 1900) << "-" << std::format("{:02}", now_tm->tm_mon + 1) << "-"
       << now_tm->tm_mday << " " << now_tm->tm_hour << ":" << now_tm->tm_min
       << ":" << now_tm->tm_sec;
   return oss.str();
