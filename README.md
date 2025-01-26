@@ -1,8 +1,8 @@
 # eMCDP - e(xtended) [MCDP2](https://github.com/fmfi-compbio/mcdp2)
 
-### A tool built on top of MCDP2 [1], allowing for colocalization analysis on genomic windows. Written in C++.
+A tool built on top of MCDP2 [1], allowing for colocalization analysis on genomic windows. Written in C++.
 
-#### How to run?
+#### How to use this?
 
 ```
 bash run.sh
