@@ -8,4 +8,6 @@
 bash run.sh
 ```
 
-> [1] Gafurov, A., Vinař, T., Medvedev, P., Brejová, B. (2024). Efficient Analysis of Annotation Colocalization Accounting for Genomic Contexts. In: Ma, J. (eds) Research in Computational Molecular Biology. RECOMB 2024. Lecture Notes in Computer Science, vol 14758. Springer, Cham. https://doi.org/10.1007/978-1-0716-3989-4_3
+> [1] Askar Gafurov, Broňa Brejová, Paul Medvedev,
+> Markov chains improve the significance computation of overlapping genome annotations,
+> Bioinformatics, Volume 38, Issue Supplement_1, July 2022, Pages i203–i211, https://doi.org/10.1093/bioinformatics/btac255
