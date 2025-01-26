@@ -8,28 +8,28 @@ void Args::parse_args(int argc, char *argv[]) {
     if (flag == "--chs") {
       if (i + 1 < argc) {
         chr_size_file_path = argv[++i];
-        logger.log(Logger::INFO, "Parsed --chs: " + chr_size_file_path);
+        logger.info("Parsed --chs: " + chr_size_file_path);
       } else {
         log_failed_to_parse_args(flag);
       }
     } else if (flag == "--q") {
       if (i + 1 < argc) {
         query_intervals_file_path = argv[++i];
-        logger.log(Logger::INFO, "Parsed --q: " + query_intervals_file_path);
+        logger.info("Parsed --q: " + query_intervals_file_path);
       } else {
         log_failed_to_parse_args(flag);
       }
     } else if (flag == "--r") {
       if (i + 1 < argc) {
         ref_intervals_file_path = argv[++i];
-        logger.log(Logger::INFO, "Parsed --r: " + ref_intervals_file_path);
+        logger.info("Parsed --r: " + ref_intervals_file_path);
       } else {
         log_failed_to_parse_args(flag);
       }
-    } else if (flag == "-o") {
+    } else if (flag == "--o") {
       if (i + 1 < argc) {
         output_file_path = argv[++i];
-        logger.log(Logger::INFO, "Parsed -o: " + output_file_path);
+        logger.info("Parsed --o: " + output_file_path);
       } else {
         log_failed_to_parse_args(flag);
       }
@@ -41,13 +41,20 @@ void Args::parse_args(int argc, char *argv[]) {
   check_missing_args();
 }
 
+void Args::debug_args() {
+  logger.debug("output: " + output_file_path);
+  logger.debug("ref_intervals_file_path: " + ref_intervals_file_path);
+  logger.debug("query_intervals_file_path: " + query_intervals_file_path);
+  logger.debug("chr_size_file_path: " + chr_size_file_path);
+}
+
 void Args::log_failed_to_parse_args(const std::string &flag) {
-  logger.log(Logger::ERROR, "Argument " + flag + " is missing. Exiting.");
+  logger.error("Argument " + flag + " is missing. Exiting.");
   exit(1);
 }
 
 void Args::log_invalid_arg(const std::string &flag) {
-  logger.log(Logger::ERROR, "Invalid argument " + flag + ". Exiting.");
+  logger.error("Invalid argument " + flag + ". Exiting.");
   exit(1);
 }
 
@@ -63,8 +70,7 @@ void Args::check_missing_args() {
     missing_args += " --chs";
 
   if (!missing_args.empty()) {
-    logger.log(Logger::ERROR, "Following arguments are missing:" +
-                                  missing_args + ". Exiting.");
+    logger.error("Following arguments are missing:" + missing_args + ". Exiting.");
     exit(1);
   }
 }

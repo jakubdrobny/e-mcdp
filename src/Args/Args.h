@@ -9,6 +9,7 @@ public:
   Args(Logger &logger);
 
   void parse_args(int argc, char *argv[]);
+  void debug_args();
 
   std::string chr_size_file_path;
   std::string ref_intervals_file_path;

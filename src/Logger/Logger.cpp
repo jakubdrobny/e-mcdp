@@ -5,9 +5,10 @@
 
 Logger::Logger(const std::string &output_path) {
   if (!output_path.empty()) {
-    file_output.open(output_path, std::ios::app);
+    file_output.open(output_path, std::ios::trunc);
     if (!file_output.is_open()) {
-      throw std::runtime_error("Failed to open log file: " + output_path);
+      std::cerr << "Failed to open log file: " + output_path << ". Exiting.\n";
+      exit(1);
     }
     log_to_file = true;
   }
@@ -28,6 +29,18 @@ void Logger::log(Level level, const std::string &message) {
   } else {
     std::cout << log_entry << std::endl;
   }
+}
+
+void Logger::info(const std::string &message) {
+  log(Logger::INFO, message);
+}
+
+void Logger::debug(const std::string &message) {
+  log(Logger::DEBUG, message);
+}
+
+void Logger::error(const std::string &message) {
+  log(Logger::ERROR, message);
 }
 
 std::string Logger::get_timestamp() {

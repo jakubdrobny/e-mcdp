@@ -1,14 +1,14 @@
 CXX := g++
 CXXFLAGS := -Wall -O2
 
-SOURCES := $(wildcard src/*.cpp)
+SOURCES := $(wildcard src/*.cpp) $(wildcard src/**/*.cpp)
 BIN := bin/e-mcdp
 
 all: $(BIN)
 
 $(BIN): $(SOURCES)
 	@mkdir -p bin
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 install: $(BIN)
 	@cp $(BIN) /usr/local/bin
