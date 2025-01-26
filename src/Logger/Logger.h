@@ -30,4 +30,6 @@ private:
   std::string level_to_string(Level level);
 };
 
+extern Logger logger;
+
 #endif // LOGGER_H

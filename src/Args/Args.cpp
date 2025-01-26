@@ -60,8 +60,6 @@ void Args::log_invalid_arg(const std::string &flag) {
 
 void Args::check_missing_args() {
   std::string missing_args;
-  if (output_file_path.empty())
-    missing_args += " --o";
   if (query_intervals_file_path.empty())
     missing_args += " --q";
   if (ref_intervals_file_path.empty())
