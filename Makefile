@@ -18,4 +18,4 @@ clean:
 	@rm -rf bin
 	@echo "Cleaned bin directory."
 
-.PHONY: all clean install test
+.PHONY: all clean install
