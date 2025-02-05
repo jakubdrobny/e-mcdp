@@ -25,6 +25,13 @@ TEST(MergeNonDisjointIntervalsTest, NonOverlappingIntervals) {
   EXPECT_EQ(merge_non_disjoint_intervals(intervals), expected);
 }
 
+TEST(MergeNonDisjointIntervalsTest,
+     EqualEndAndBeginShouldMergeBecauseWeNeedGaps) {
+  std::vector<Interval> intervals = {{"chr1", 1, 5}, {"chr1", 5, 8}};
+  std::vector<Interval> expected = {{"chr1", 1, 8}};
+  EXPECT_EQ(merge_non_disjoint_intervals(intervals), expected);
+}
+
 TEST(MergeNonDisjointIntervalsTest, MixedChromosomes) {
   std::vector<Interval> intervals = {{"chr1", 1, 5}, {"chr2", 1, 5}};
   std::vector<Interval> expected = {{"chr1", 1, 5}, {"chr2", 1, 5}};
