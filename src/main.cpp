@@ -2,6 +2,7 @@
 #include "Helpers/Helpers.h"
 #include "Logger/Logger.h"
 
+#include <gtest/gtest.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -10,6 +11,12 @@ Logger logger;
 
 int main(int argc, char *argv[]) {
   logger = Logger();
+
+  ::testing::InitGoogleTest();
+  if (RUN_ALL_TESTS()) {
+    logger.error("Some tests have failed. Please see the log above.");
+    return 1;
+  }
 
   Args args(logger);
   args.parse_args(argc, argv);

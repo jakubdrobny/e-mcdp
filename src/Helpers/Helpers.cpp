@@ -138,9 +138,10 @@ merge_non_disjoint_intervals(std::vector<Interval> intervals) {
        interval_idx++) {
     Interval new_interval = intervals[interval_idx];
     if (cur_interval.chr_name != new_interval.chr_name ||
-        cur_interval.end >= new_interval.begin) {
+        cur_interval.end < new_interval.begin) {
       new_intervals.push_back(cur_interval);
       cur_interval = new_interval;
+      continue;
     }
 
     if (new_interval.end > cur_interval.end) {

@@ -1,6 +1,7 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
+#include <ostream>
 #include <string>
 
 // half open intervals [b, e)
@@ -12,8 +13,10 @@ public:
   Interval();
   Interval(std::string chr_name, long long begin, long long end);
 
-  operator std::string();
-  bool operator<(const Interval &other);
+  operator std::string() const;
+  bool operator<(const Interval &other) const;
+  bool operator==(const Interval &other) const;
+  std::ostream &operator<<(std::ostream &os);
 };
 
 #endif // INTERVAL_H

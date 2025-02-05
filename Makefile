@@ -8,7 +8,7 @@ all: $(BIN)
 
 $(BIN): $(SOURCES)
 	@mkdir -p bin
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lgtest -lpthread
 
 install: $(BIN)
 	@cp $(BIN) /usr/local/bin
@@ -18,4 +18,4 @@ clean:
 	@rm -rf bin
 	@echo "Cleaned bin directory."
 
-.PHONY: all clean install
+.PHONY: all clean install test
