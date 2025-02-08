@@ -8,13 +8,15 @@
 #include <unordered_set>
 #include <vector>
 
+using ChrSizesVector = std::vector<std::pair<std::string, long long>>;
+using ChrSizesMap = std::unordered_map<std::string, long long>;
+
 Interval parse_intervals_line(std::string line);
 
 std::vector<Interval> load_intervals(const std::string &file_path,
                                      bool is_closed = false);
 
-std::unordered_map<std::string, long long>
-load_chr_sizes(const std::string &file_path);
+ChrSizesMap load_chr_sizes(const std::string &file_path);
 
 std::unordered_set<std::string> load_chr_names_from_chr_sizes(
     const std::unordered_map<std::string, long long> &chr_sizes);
@@ -33,5 +35,12 @@ long long count_overlaps(std::vector<Interval> ref_intervals,
 
 std::vector<std::string>
 get_sorted_chr_names_from_intervals(std::vector<Interval> intervals);
+
+ChrSizesVector
+chr_sizes_map_to_array(std::unordered_map<std::string, long long> &chr_sizes);
+
+long double calculate_joint_pvalue(
+    std::vector<std::vector<long double>> &probs_by_chromosome,
+    long long overlap_count);
 
 #endif

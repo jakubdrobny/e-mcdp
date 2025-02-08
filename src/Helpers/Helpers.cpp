@@ -74,9 +74,8 @@ std::vector<Interval> load_intervals(const std::string &file_path,
   return intervals;
 }
 
-std::unordered_map<std::string, long long>
-load_chr_sizes(const std::string &file_path) {
-  std::unordered_map<std::string, long long> chr_sizes;
+ChrSizesMap load_chr_sizes(const std::string &file_path) {
+  ChrSizesMap chr_sizes;
 
   std::ifstream input_file(file_path);
   std::string line;
@@ -279,4 +278,18 @@ long long count_overlaps(std::vector<Interval> ref_intervals,
   }
 
   return total_overlap_count;
+}
+
+ChrSizesVector chr_sizes_map_to_array(ChrSizesMap &chr_sizes_map) {
+  ChrSizesVector chr_sizes_vector;
+  for (std::pair<std::string, long long> p : chr_sizes_map)
+    chr_sizes_vector.push_back(p);
+  sort(chr_sizes_vector.begin(), chr_sizes_vector.end());
+  return chr_sizes_vector;
+}
+
+long double calculate_joint_pvalue(
+    std::vector<std::vector<long double>> &probs_by_chromosome,
+    long long overlap_count) {
+  return 0.;
 }
