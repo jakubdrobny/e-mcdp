@@ -1,5 +1,4 @@
 #include "Interval.h"
-#include <ostream>
 #include <string>
 
 Interval::Interval() : chr_name(), begin(), end() {}
@@ -12,6 +11,16 @@ Interval::operator std::string() const {
          ")";
 }
 
+std::string interval_vector_to_string(std::vector<Interval> &intervals) {
+  std::string result;
+  for (size_t idx = 0; idx < intervals.size(); idx++) {
+    if (idx > 0)
+      result += ",";
+    result += "{" + std::string(intervals[idx]) + "}";
+  }
+  return result;
+}
+
 bool Interval::operator<(const Interval &other) const {
   if (chr_name != other.chr_name)
     return chr_name < other.chr_name;
@@ -22,9 +31,4 @@ bool Interval::operator<(const Interval &other) const {
 
 bool Interval::operator==(const Interval &other) const {
   return chr_name == other.chr_name && begin == other.begin && end == other.end;
-}
-
-std::ostream &Interval::operator<<(std::ostream &os) {
-  os << chr_name << ": " << begin << "-" << end;
-  return os;
 }

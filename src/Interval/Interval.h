@@ -3,6 +3,7 @@
 
 #include <ostream>
 #include <string>
+#include <vector>
 
 // half open intervals [b, e)
 class Interval {
@@ -18,5 +19,7 @@ public:
   bool operator==(const Interval &other) const;
   std::ostream &operator<<(std::ostream &os);
 };
+
+std::string interval_vector_to_string(std::vector<Interval> &intervals);
 
 #endif // INTERVAL_H

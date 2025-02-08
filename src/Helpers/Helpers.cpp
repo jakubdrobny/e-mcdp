@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -164,4 +165,118 @@ std::vector<Interval> remove_empty_intervals(std::vector<Interval> intervals) {
   }
 
   return new_intervals;
+}
+
+std::vector<std::string>
+get_sorted_chr_names_from_intervals(std::vector<Interval> intervals) {
+  std::vector<std::string> chr_names;
+
+  if (intervals.empty()) {
+    return chr_names;
+  }
+
+  sort(intervals.begin(), intervals.end());
+  chr_names.push_back(intervals[0].chr_name);
+  for (Interval interval : intervals) {
+    if (interval.chr_name != intervals.back().chr_name) {
+      chr_names.push_back(interval.chr_name);
+    }
+  }
+
+  return chr_names;
+}
+
+template <typename T>
+void extend(std::vector<T> &self, const std::vector<T> &other) {
+  self.reserve(self.size() + other.size());
+  for (const auto &element : other) {
+    self.push_back(element);
+  }
+}
+
+// assuming intervals are sorted
+long long count_overlaps_single_chr(std::vector<Interval> ref_intervals,
+                                    std::vector<Interval> query_intervals) {
+  long long overlap_count = 0;
+  bool is_ref_interval_open = false, is_query_interval_open = false,
+       is_current_ref_interval_counted = false;
+
+  std::vector<std::vector<long long>> events;
+  for (Interval interval : ref_intervals) {
+    events.push_back({interval.begin, 0, 0});
+    events.push_back({interval.end, 0, 1});
+  }
+  for (Interval interval : query_intervals) {
+    events.push_back({interval.begin, 1, 0});
+    events.push_back({interval.end, 1, 1});
+  }
+  sort(events.begin(), events.end());
+
+  long long last_pos = -1;
+  for (std::vector<long long> event : events) {
+    long long pos = event[0];
+    bool is_query = event[1], is_end = event[2];
+    if (last_pos < pos) {
+      last_pos = pos;
+      if (is_ref_interval_open && is_query_interval_open &&
+          !is_current_ref_interval_counted) {
+        overlap_count++;
+        is_current_ref_interval_counted = true;
+      }
+    }
+    if (!is_query && !is_end) {
+      is_ref_interval_open = true;
+      is_current_ref_interval_counted = false;
+    }
+    if (!is_query && is_end) {
+      is_ref_interval_open = false;
+    }
+    if (is_query && !is_end) {
+      is_query_interval_open = true;
+    }
+    if (is_query && is_end) {
+      is_query_interval_open = false;
+    }
+  }
+
+  return overlap_count;
+}
+
+long long count_overlaps(std::vector<Interval> ref_intervals,
+                         std::vector<Interval> query_intervals) {
+  std::sort(ref_intervals.begin(), ref_intervals.end());
+  std::sort(query_intervals.begin(), query_intervals.end());
+
+  std::vector<std::string> chr_names,
+      ref_chr_names = get_sorted_chr_names_from_intervals(ref_intervals),
+      query_chr_names = get_sorted_chr_names_from_intervals(query_intervals);
+  extend(chr_names, ref_chr_names);
+  extend(chr_names, query_chr_names);
+
+  auto get_chr_intervals = [](std::vector<Interval> &intervals, int &idx,
+                              std::string chr_name) {
+    std::vector<Interval> chr_intervals;
+    for (; intervals[idx].chr_name <= chr_name; idx++)
+      if (intervals[idx].chr_name == chr_name)
+        chr_intervals.push_back(intervals[idx]);
+    return chr_intervals;
+  };
+
+  int ref_idx = 0, query_idx = 0;
+  long long total_overlap_count = 0;
+  for (std::string chr_name : chr_names) {
+    std::vector<Interval> chr_ref_intervals = get_chr_intervals(
+                              ref_intervals, ref_idx, chr_name),
+                          chr_query_intervals = get_chr_intervals(
+                              query_intervals, query_idx, chr_name);
+
+    if (chr_ref_intervals.empty() || chr_query_intervals.empty())
+      continue;
+
+    long long chr_overlap_count =
+        count_overlaps_single_chr(chr_ref_intervals, chr_query_intervals);
+    total_overlap_count += chr_overlap_count;
+  }
+
+  return total_overlap_count;
 }

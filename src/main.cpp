@@ -63,5 +63,8 @@ int main(int argc, char *argv[]) {
       " (" + std::to_string(raw_query_count) + " before merging)");
   logger.info("Number of chromosomes: " + std::to_string(chr_sizes.size()));
 
+  long long overlap_count = count_overlaps(ref_intervals, query_intervals);
+  logger.info("Overlap count: " + std::to_string(overlap_count));
+
   return 0;
 }
