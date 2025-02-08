@@ -64,15 +64,15 @@ long double Model::eval_pvalue(long long overlap_count) {
 }
 
 std::vector<long double>
-eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
-                             std::vector<Interval> query_intervals,
-                             long long chr_size) {
+Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
+                                    std::vector<Interval> query_intervals,
+                                    long long chr_size) {
   return {0.};
 }
 
 std::vector<long double>
-eval_probs_single_chr_direct_eigen(std::vector<Interval> ref_intervals,
-                                   std::vector<Interval> query_intervals,
-                                   long long chr_size) {
+Model::eval_probs_single_chr_direct_eigen(std::vector<Interval> ref_intervals,
+                                          std::vector<Interval> query_intervals,
+                                          long long chr_size) {
   return {0.};
 }
