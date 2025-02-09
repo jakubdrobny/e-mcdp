@@ -1,6 +1,7 @@
 #include "Helpers.h"
 #include "../Interval/Interval.h"
 #include "../Logger/Logger.h"
+#include "../Matrix/Matrix.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -286,6 +287,43 @@ ChrSizesVector chr_sizes_map_to_array(ChrSizesMap &chr_sizes_map) {
     chr_sizes_vector.push_back(p);
   sort(chr_sizes_vector.begin(), chr_sizes_vector.end());
   return chr_sizes_vector;
+}
+
+Matrix<long double>
+get_base_transition_matrix(long long chr_size,
+                           std::vector<Interval> &query_intervals) {
+  Matrix<long double> t({2});
+
+  long double L = chr_size;
+  long double len_Q = query_intervals.size();
+  long double weight_Q = 0;
+  for (Interval interval : query_intervals)
+    weight_Q += interval.end - interval.begin;
+
+  t[{0, 1}] = (len_Q) / (L - weight_Q - 1);
+  t[{0, 0}] = 1 - t[{0, 1}];
+
+  t[{1, 0}] = (len_Q) / (weight_Q);
+  t[{1, 1}] = 1 - t[{1, 0}];
+
+  return t;
+}
+
+// returns T and T_mod (its just T, with zeros in second col)
+std::pair<Matrix<long double>, Matrix<long double>>
+get_transition_matrices(long long chr_size,
+                        std::vector<Interval> &query_intervals) {
+  if (query_intervals.empty()) {
+    logger.error("Query intervals should not be empty.");
+    exit(1);
+  }
+
+  Matrix<long double> t = get_base_transition_matrix(chr_size, query_intervals);
+  Matrix<long double> d({2});
+  d[{0, 0}] = t[{0, 0}];
+  d[{1, 0}] = t[{1, 0}];
+
+  return {t, d};
 }
 
 long double calculate_joint_pvalue(

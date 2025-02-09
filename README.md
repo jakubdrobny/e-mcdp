@@ -10,8 +10,6 @@ bash run.sh
 
 ### TODO
 
-- check what is the difference between [eval_probs_single_chr_direct](https://github.com/fmfi-compbio/mc-overlaps/blob/master/src/simple_model.py#L78) and [eval_probs_single_chr_eigen](https://github.com/fmfi-compbio/mc-overlaps/blob/master/src/simple_model.py#L137)
-- implement both if they are not the same, otherwise just the direct one
 - implement `calculate_joint_pvalue` function from [joint_pvalue](https://github.com/fmfi-compbio/mc-overlaps/blob/master/src/helpers.py#L119)
 
 > [1] Askar Gafurov, Broňa Brejová, Paul Medvedev,

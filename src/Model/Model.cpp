@@ -67,7 +67,13 @@ std::vector<long double>
 Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
                                     std::vector<Interval> query_intervals,
                                     long long chr_size) {
-  return {0.};
+  if (ref_intervals.empty() || query_intervals.empty())
+    return {0.};
+
+  auto [T, D] = get_transition_matrices(chr_size, query_intervals);
+  long long m = ref_intervals.size();
+  if (ref_intervals[0].begin == 0) {
+  }
 }
 
 std::vector<long double>

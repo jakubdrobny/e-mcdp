@@ -2,6 +2,7 @@
 #define HELPERS_H
 
 #include "../Interval/Interval.h"
+#include "../Matrix/Matrix.h"
 
 #include <string>
 #include <unordered_map>
@@ -42,5 +43,13 @@ chr_sizes_map_to_array(std::unordered_map<std::string, long long> &chr_sizes);
 long double calculate_joint_pvalue(
     std::vector<std::vector<long double>> &probs_by_chromosome,
     long long overlap_count);
+
+Matrix<long double>
+get_base_transition_matrix(long long chr_size,
+                           std::vector<Interval> &query_intervals);
+
+std::pair<Matrix<long double>, Matrix<long double>>
+get_transition_matrices(long long chr_size,
+                        std::vector<Interval> &query_intervals);
 
 #endif
