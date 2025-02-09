@@ -52,4 +52,7 @@ std::pair<Matrix<long double>, Matrix<long double>>
 get_transition_matrices(long long chr_size,
                         std::vector<Interval> &query_intervals);
 
+template <typename T>
+void extend(std::vector<T> &self, const std::vector<T> &other);
+
 #endif

@@ -5,18 +5,24 @@
 
 template <typename T> class Matrix {
 public:
-  Matrix(std::vector<int> dimensions);
+  Matrix(int rows, int cols);
 
-  T &operator[](const std::vector<int> &index);
-  const T &operator[](const std::vector<int> &index) const;
+  T &operator[](int i);
+  const T &operator[](int i) const;
 
-  void print() const;
+  std::vector<T> operator[](const std::vector<int> &index) const;
+
+  T &operator()(int i, int j);
+  const T &operator()(int i, int j) const;
+
+  Matrix<T> operator*(const Matrix<T> &other) const;
+
+  Matrix<T> operator^(int n) const;
 
 private:
-  std::vector<int> dimensions;
+  int rows;
+  int cols;
   std::vector<T> data;
-
-  int get_index(const std::vector<int> &index) const;
 };
 
 #endif

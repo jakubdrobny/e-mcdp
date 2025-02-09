@@ -292,7 +292,7 @@ ChrSizesVector chr_sizes_map_to_array(ChrSizesMap &chr_sizes_map) {
 Matrix<long double>
 get_base_transition_matrix(long long chr_size,
                            std::vector<Interval> &query_intervals) {
-  Matrix<long double> t({2});
+  Matrix<long double> t(2, 2);
 
   long double L = chr_size;
   long double len_Q = query_intervals.size();
@@ -300,11 +300,11 @@ get_base_transition_matrix(long long chr_size,
   for (Interval interval : query_intervals)
     weight_Q += interval.end - interval.begin;
 
-  t[{0, 1}] = (len_Q) / (L - weight_Q - 1);
-  t[{0, 0}] = 1 - t[{0, 1}];
+  t(0, 1) = (len_Q) / (L - weight_Q - 1);
+  t(0, 0) = 1 - t(0, 1);
 
-  t[{1, 0}] = (len_Q) / (weight_Q);
-  t[{1, 1}] = 1 - t[{1, 0}];
+  t(1, 0) = (len_Q) / (weight_Q);
+  t(1, 1) = 1 - t(1, 0);
 
   return t;
 }
@@ -319,9 +319,9 @@ get_transition_matrices(long long chr_size,
   }
 
   Matrix<long double> t = get_base_transition_matrix(chr_size, query_intervals);
-  Matrix<long double> d({2});
-  d[{0, 0}] = t[{0, 0}];
-  d[{1, 0}] = t[{1, 0}];
+  Matrix<long double> d(2, 2);
+  d(0, 0) = t(0, 0);
+  d(1, 0) = t(1, 0);
 
   return {t, d};
 }

@@ -1,6 +1,7 @@
 #include "Model.h"
 #include "../Helpers/Helpers.h"
 #include "../Logger/Logger.h"
+#include <limits>
 
 Model::Model() : ref_intervals(), query_intervals(), chr_sizes() {}
 
@@ -71,9 +72,51 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
     return {0.};
 
   auto [T, D] = get_transition_matrices(chr_size, query_intervals);
-  long long m = ref_intervals.size();
+  int m = ref_intervals.size();
   if (ref_intervals[0].begin == 0) {
+    logger.warn("First reference interval starts with zero, changing to one!");
+    ref_intervals[0].begin = 1;
+    if (ref_intervals[0].end - ref_intervals[0].begin == 0) {
+      logger.warn("First reference interval has length 0, removing it!");
+      ref_intervals.erase(ref_intervals.begin());
+    }
   }
+
+  std::vector<Interval> ref_intervals_augmented;
+  ref_intervals_augmented.push_back(Interval(
+      ref_intervals[0].chr_name, std::numeric_limits<long long>::min(), 0));
+  extend(ref_intervals_augmented, ref_intervals);
+  ref_intervals_augmented.push_back(
+      Interval(ref_intervals[0].chr_name, chr_size,
+               std::numeric_limits<long long>::max()));
+
+  Matrix<long double> prev_line(m + 1, 2);
+  prev_line(0, 0) = 1;
+  Matrix<long double> last_col(m + 1, 2);
+
+  // calculate zero-th row in separate way
+  for (int j = 1; j <= m; j++) {
+    long long gap =
+        ref_intervals_augmented[j].begin - ref_intervals_augmented[j - 1].end;
+    if (j == 1)
+      gap--;
+    if (gap < 0) {
+      logger.error("Gap should be non-negative.");
+      exit(1);
+    }
+
+    long long len =
+        ref_intervals_augmented[j].end - ref_intervals_augmented[j].begin;
+    if (len < 0) {
+      logger.error("Interval length should be non-negative.");
+      exit(1);
+    }
+
+    // prev_line[j] = prev_line[j] * ((T ^ gap) * (D ^ len));
+  }
+
+  std::vector<long double> probs;
+  return probs;
 }
 
 std::vector<long double>
