@@ -331,3 +331,6 @@ long double calculate_joint_pvalue(
     long long overlap_count) {
   return 0.;
 }
+
+template void extend<Interval>(std::vector<Interval> &,
+                               const std::vector<Interval> &);

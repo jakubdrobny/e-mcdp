@@ -1,28 +1,38 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <stdexcept>
 #include <vector>
 
 template <typename T> class Matrix {
 public:
-  Matrix(int rows, int cols);
+  Matrix(size_t rows, size_t cols);
+  Matrix(const std::vector<T> &data);
+  Matrix(const std::vector<std::vector<T>> &data);
 
-  T &operator[](int i);
-  const T &operator[](int i) const;
+  Matrix<T> &operator()(size_t row);
+  const Matrix<T> &operator()(size_t row) const;
 
-  std::vector<T> operator[](const std::vector<int> &index) const;
-
-  T &operator()(int i, int j);
-  const T &operator()(int i, int j) const;
+  T &operator()(size_t row, size_t col);
+  const T &operator()(size_t row, size_t col) const;
 
   Matrix<T> operator*(const Matrix<T> &other) const;
+  Matrix<T> operator^(long long power) const;
 
-  Matrix<T> operator^(int n) const;
+  size_t getRowCount() const;
+  size_t getColCount() const;
+
+  Matrix<T> &operator=(const std::vector<T> &rowData);
+  Matrix<T> &operator=(const Matrix<T> &rowMatrix);
+
+  void print() const;
 
 private:
-  int rows;
-  int cols;
-  std::vector<T> data;
+  size_t rows, cols;
+  std::vector<std::vector<T>> data;
 };
 
-#endif
+template class Matrix<int>;
+template class Matrix<long double>;
+
+#endif // MATRIX_H

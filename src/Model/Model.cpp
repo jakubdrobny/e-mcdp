@@ -71,7 +71,10 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
   if (ref_intervals.empty() || query_intervals.empty())
     return {0.};
 
-  auto [T, D] = get_transition_matrices(chr_size, query_intervals);
+  auto transition_matrics = get_transition_matrices(chr_size, query_intervals);
+  Matrix<long double> T = transition_matrics.first,
+                      D = transition_matrics.second;
+
   int m = ref_intervals.size();
   if (ref_intervals[0].begin == 0) {
     logger.warn("First reference interval starts with zero, changing to one!");
@@ -112,7 +115,7 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
       exit(1);
     }
 
-    // prev_line[j] = prev_line[j] * ((T ^ gap) * (D ^ len));
+    prev_line(j) = prev_line(j) * ((T ^ gap) * (D ^ len));
   }
 
   std::vector<long double> probs;
