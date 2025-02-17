@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -Wall -O2 -std=c++20
+CXXFLAGS := -Wall -O2 -std=c++20 -I./include
 
 SOURCES := $(wildcard src/*.cpp) $(wildcard src/**/*.cpp)
 BIN := bin/e-mcdp
@@ -18,4 +18,4 @@ clean:
 	@rm -rf bin
 	@echo "Cleaned bin directory."
 
-.PHONY: all clean install
+.PHONY: all clean install test

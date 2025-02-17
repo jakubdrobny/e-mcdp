@@ -1,4 +1,5 @@
 #include "../Helpers/Helpers.h"
+#include "../Interval/Interval.h"
 #include <gtest/gtest.h>
 
 TEST(MergeNonDisjointIntervalsTest, EmptyVector) {

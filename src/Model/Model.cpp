@@ -72,8 +72,8 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
     return {0.};
 
   auto transition_matrics = get_transition_matrices(chr_size, query_intervals);
-  Matrix<long double> T = transition_matrics.first,
-                      D = transition_matrics.second;
+  nc::NdArray<long double> T = transition_matrics.first,
+                           D = transition_matrics.second;
 
   int m = ref_intervals.size();
   if (ref_intervals[0].begin == 0) {
@@ -93,9 +93,9 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
       Interval(ref_intervals[0].chr_name, chr_size,
                std::numeric_limits<long long>::max()));
 
-  Matrix<long double> prev_line(m + 1, 2);
+  nc::NdArray<long double> prev_line(m + 1, 2);
   prev_line(0, 0) = 1;
-  Matrix<long double> last_col(m + 1, 2);
+  nc::NdArray<long double> last_col(m + 1, 2);
 
   // calculate zero-th row in separate way
   for (int j = 1; j <= m; j++) {
@@ -115,7 +115,12 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
       exit(1);
     }
 
-    prev_line(j) = prev_line(j) * ((T ^ gap) * (D ^ len));
+    nc::NdArray<long double> row_vector = prev_line.row(j);
+    row_vector = row_vector.reshape(1, row_vector.size());
+    nc::NdArray<long double> result =
+        matrix_multiply(row_vector, binary_exponentiation(T, gap));
+    for (nc::uint32 k = 0; k < prev_line.numCols(); ++k)
+      prev_line(j, k) = result(0, k);
   }
 
   std::vector<long double> probs;

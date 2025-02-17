@@ -2,7 +2,7 @@
 #define HELPERS_H
 
 #include "../Interval/Interval.h"
-#include "../Matrix/Matrix.h"
+#include "NumCpp.hpp"
 
 #include <string>
 #include <unordered_map>
@@ -44,15 +44,20 @@ long double calculate_joint_pvalue(
     std::vector<std::vector<long double>> &probs_by_chromosome,
     long long overlap_count);
 
-Matrix<long double>
+nc::NdArray<long double>
 get_base_transition_matrix(long long chr_size,
                            std::vector<Interval> &query_intervals);
 
-std::pair<Matrix<long double>, Matrix<long double>>
+std::pair<nc::NdArray<long double>, nc::NdArray<long double>>
 get_transition_matrices(long long chr_size,
                         std::vector<Interval> &query_intervals);
 
 template <typename T>
 void extend(std::vector<T> &self, const std::vector<T> &other);
 
+nc::NdArray<long double> matrix_multiply(const nc::NdArray<long double> &mat1,
+                                         const nc::NdArray<long double> &mat2);
+
+nc::NdArray<long double>
+binary_exponentiation(const nc::NdArray<long double> &mat, long long power);
 #endif

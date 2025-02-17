@@ -1,7 +1,6 @@
 #include "Helpers.h"
 #include "../Interval/Interval.h"
 #include "../Logger/Logger.h"
-#include "../Matrix/Matrix.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -289,10 +288,10 @@ ChrSizesVector chr_sizes_map_to_array(ChrSizesMap &chr_sizes_map) {
   return chr_sizes_vector;
 }
 
-Matrix<long double>
+nc::NdArray<long double>
 get_base_transition_matrix(long long chr_size,
                            std::vector<Interval> &query_intervals) {
-  Matrix<long double> t(2, 2);
+  nc::NdArray<long double> t(2, 2);
 
   long double L = chr_size;
   long double len_Q = query_intervals.size();
@@ -310,7 +309,7 @@ get_base_transition_matrix(long long chr_size,
 }
 
 // returns T and T_mod (its just T, with zeros in second col)
-std::pair<Matrix<long double>, Matrix<long double>>
+std::pair<nc::NdArray<long double>, nc::NdArray<long double>>
 get_transition_matrices(long long chr_size,
                         std::vector<Interval> &query_intervals) {
   if (query_intervals.empty()) {
@@ -318,8 +317,9 @@ get_transition_matrices(long long chr_size,
     exit(1);
   }
 
-  Matrix<long double> t = get_base_transition_matrix(chr_size, query_intervals);
-  Matrix<long double> d(2, 2);
+  nc::NdArray<long double> t =
+      get_base_transition_matrix(chr_size, query_intervals);
+  nc::NdArray<long double> d(2, 2);
   d(0, 0) = t(0, 0);
   d(1, 0) = t(1, 0);
 
@@ -334,3 +334,45 @@ long double calculate_joint_pvalue(
 
 template void extend<Interval>(std::vector<Interval> &,
                                const std::vector<Interval> &);
+
+nc::NdArray<long double> matrix_multiply(const nc::NdArray<long double> &mat1,
+                                         const nc::NdArray<long double> &mat2) {
+  if (mat1.numCols() != mat2.numRows()) {
+    logger.error("Matrix dimensions do not match for multiplication.");
+    exit(1);
+  }
+
+  nc::NdArray<long double> result =
+      nc::zeros<long double>(mat1.numRows(), mat2.numCols());
+
+  for (nc::uint32 i = 0; i < mat1.numRows(); ++i) {
+    for (nc::uint32 j = 0; j < mat2.numCols(); ++j) {
+      for (nc::uint32 k = 0; k < mat1.numCols(); ++k) {
+        result(i, j) += mat1(i, k) * mat2(k, j);
+      }
+    }
+  }
+
+  return result;
+}
+
+nc::NdArray<long double>
+binary_exponentiation(const nc::NdArray<long double> &mat, long long power) {
+  if (mat.numRows() != mat.numCols()) {
+    logger.error("Matrix must be square for exponentiation.");
+    exit(1);
+  }
+
+  nc::NdArray<long double> result = nc::eye<long double>(mat.numRows());
+
+  nc::NdArray<long double> base = mat;
+
+  while (power > 0) {
+    if (power % 2 == 1)
+      result = matrix_multiply(result, base);
+    base = matrix_multiply(base, base);
+    power /= 2;
+  }
+
+  return result;
+}
