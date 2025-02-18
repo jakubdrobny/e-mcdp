@@ -1,4 +1,4 @@
-# GALA
+# CAGA - Collocalization Analysis of Genomic Annotations
 
 A tool built on top of mc-overlaps [1] (mcdp2 [2] predecessor), allowing for colocalization analysis on genomic windows. Written in C++.
 
