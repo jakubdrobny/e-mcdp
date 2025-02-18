@@ -115,15 +115,74 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
       exit(1);
     }
 
-    nc::NdArray<long double> row_vector = prev_line.row(j);
-    row_vector = row_vector.reshape(1, row_vector.size());
     nc::NdArray<long double> result =
-        matrix_multiply(row_vector, binary_exponentiation(T, gap));
+        matrix_multiply(matrix_row_to_2d_matrix(prev_line, j),
+                        matrix_multiply(binary_exponentiation(T, gap),
+                                        binary_exponentiation(D, len)));
     for (nc::uint32 k = 0; k < prev_line.numCols(); ++k)
       prev_line(j, k) = result(0, k);
   }
 
-  std::vector<long double> probs;
+  last_col[0] = prev_line[prev_line.size() - 1];
+
+  nc::NdArray<long double> next_line(m + 1, 2);
+  for (int k = 1; k <= m; k++) {
+    next_line(k - 1, 0) = 0;
+    next_line(k - 1, 1) = 0;
+
+    if (k % 10 == 0) {
+      logger.debug("Processing " + std::to_string(k) + "-th line out of " +
+                   std::to_string(m) + " rows of DP table...");
+    }
+
+    for (int j = k; j < m + 1; j++) {
+      long long gap =
+          ref_intervals_augmented[j].begin - ref_intervals_augmented[j - 1].end;
+      if (j == 1)
+        gap--;
+      if (gap < 0) {
+        logger.error("Gap should be non-negative.");
+        exit(1);
+      }
+
+      long long len =
+          ref_intervals_augmented[j].end - ref_intervals_augmented[j].begin;
+      if (len < 0) {
+        logger.error("Interval length should be non-negative.");
+        exit(1);
+      }
+
+      // dont_hit = P[j-1, k] * T^gap * D^len
+      nc::NdArray<long double> dont_hit =
+          matrix_multiply(matrix_row_to_2d_matrix(next_line, j - 1),
+                          matrix_multiply(binary_exponentiation(T, gap),
+                                          binary_exponentiation(D, len)));
+      // hit = P[j-1, k-1] * T^gap * (T^len - D^l)
+      nc::NdArray<long double> hit =
+          matrix_multiply(matrix_row_to_2d_matrix(prev_line, j - 1),
+                          matrix_multiply(binary_exponentiation(T, gap),
+                                          binary_exponentiation(T, len) -
+                                              binary_exponentiation(D, len)));
+      // P[j,k] = dont_hit + hit
+      nc::NdArray<long double> new_next_line_j = dont_hit + hit;
+      for (size_t _idx = 0; _idx < next_line.numCols(); _idx++)
+        next_line(j, _idx) = new_next_line_j[_idx];
+    }
+
+    last_col(k, 0) = next_line(next_line.numRows() - 1, 0);
+    last_col(k, 1) = next_line(next_line.numRows() - 1, 1);
+
+    for (int j = 0; j <= m; j++) {
+      prev_line(j, 0) = next_line(j, 0);
+      prev_line(j, 1) = next_line(j, 1);
+    }
+  }
+
+  std::vector<long double> probs(m + 1);
+  for (int k = 0; k <= m; k++) {
+    probs[k] = log(last_col(k, 0) + last_col(k, 1));
+  }
+
   return probs;
 }
 
@@ -131,5 +190,6 @@ std::vector<long double>
 Model::eval_probs_single_chr_direct_eigen(std::vector<Interval> ref_intervals,
                                           std::vector<Interval> query_intervals,
                                           long long chr_size) {
-  return {0.};
+  logger.error("This is not implemented.");
+  exit(1);
 }

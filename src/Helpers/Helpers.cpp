@@ -376,3 +376,8 @@ binary_exponentiation(const nc::NdArray<long double> &mat, long long power) {
 
   return result;
 }
+
+nc::NdArray<long double>
+matrix_row_to_2d_matrix(const nc::NdArray<long double> &mat, size_t row_index) {
+  return mat.row(row_index).reshape(1, mat.numCols());
+}

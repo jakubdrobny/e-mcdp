@@ -60,4 +60,7 @@ nc::NdArray<long double> matrix_multiply(const nc::NdArray<long double> &mat1,
 
 nc::NdArray<long double>
 binary_exponentiation(const nc::NdArray<long double> &mat, long long power);
+
+nc::NdArray<long double>
+matrix_row_to_2d_matrix(const nc::NdArray<long double> &mat, size_t row_index);
 #endif

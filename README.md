@@ -10,7 +10,6 @@ bash run.sh
 
 ### TODO
 
-- finish implementing `eval_probs_single_chr_direct` from [eval_probs_single_direct_lm](https://github.com/fmfi-compbio/mc-overlaps/blob/bdc19acc5e0a8da200870442a8391cc0633392ef/src/simple_model.py#L78)
 - implement `calculate_joint_pvalue` function from [joint_pvalue](https://github.com/fmfi-compbio/mc-overlaps/blob/bdc19acc5e0a8da200870442a8391cc0633392ef/src/simple_model.py#L78)
 - figure out a way to implement merge two consecutive P_DP tables, implement it into a function
 
