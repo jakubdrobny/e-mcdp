@@ -381,3 +381,74 @@ nc::NdArray<long double>
 matrix_row_to_2d_matrix(const nc::NdArray<long double> &mat, size_t row_index) {
   return mat.row(row_index).reshape(1, mat.numCols());
 }
+
+long double logsumexp(const nc::NdArray<long double> &values) {
+  const long double ld_inf = std::numeric_limits<long double>::infinity();
+  if (values.size() == 0)
+    return -ld_inf;
+
+  long double max_value = 0.0L;
+  for (size_t i = 0; i < values.size(); i++)
+    max_value = std::max(max_value, values[i]);
+
+  long double sum = 0.0L;
+  for (long double value : values)
+    sum += value;
+
+  return max_value + log(sum);
+}
+
+// calculate joint p-value for a given `overlap_count`.
+// `p_values_by_level` should contain log-values
+long double joint_pvalue(const nc::NdArray<long double> &probs_by_level,
+                         long long overlap_count) {
+  if (overlap_count < 0)
+    return 1;
+
+  nc::NdArray<long double> logprobs = joint_logprobs(probs_by_level);
+  if (overlap_count >= probs_by_level.size())
+    return 0;
+
+  auto logprobsslice = logprobs(nc::Slice(overlap_count, logprobs.size()));
+  long double result = exp(
+      logsumexp(logprobs(nc::Slice(overlap_count, logprobs.size())).copy()));
+  return result;
+}
+
+nc::NdArray<long double>
+joint_logprobs(const nc::NdArray<long double> &probs_by_level) {
+  if (probs_by_level.size() == 0) {
+    logger.error("p-values should have at least one level!.");
+    exit(1);
+  }
+
+  for (size_t idx = 0; idx < probs_by_level.size(); idx++) {
+    if (probs_by_level[idx] == 0) {
+      logger.error("Layers should be non-empty!");
+      exit(1);
+    }
+  }
+
+  if (probs_by_level.numRows() == 1) {
+    return probs_by_level(0, nc::Slice()).copy();
+  }
+
+  long long max_k = 0;
+  for (size_t idx = 0; idx < probs_by_level.size(); idx++)
+    max_k += probs_by_level(idx, nc::Slice()).size() - 1;
+
+  const long double ld_inf = std::numeric_limits<long double>::infinity();
+
+  nc::NdArray<long double> prev_row(max_k + 1);
+  for (size_t idx = 0; idx <= max_k; idx++)
+    prev_row[idx] = -ld_inf;
+
+  for (size_t pos = 0; pos < probs_by_level(0, nc::Slice()).size(); pos++)
+    prev_row[pos] = probs_by_level(0, pos);
+
+  nc::NdArray<long double> next_row(max_k + 1);
+  for (size_t idx = 0; idx <= max_k; idx++)
+    next_row[idx] = -ld_inf;
+  nc::NdArray<long double> accum;
+  for (size_it props_by_level_idx = 1; probs_by_level.probs_by_level.numRows();)
+}

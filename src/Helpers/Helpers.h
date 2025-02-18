@@ -63,4 +63,13 @@ binary_exponentiation(const nc::NdArray<long double> &mat, long long power);
 
 nc::NdArray<long double>
 matrix_row_to_2d_matrix(const nc::NdArray<long double> &mat, size_t row_index);
+
+long double joint_pvalue(const nc::NdArray<long double> &probs_by_level,
+                         long long overlap_count);
+
+nc::NdArray<long double>
+joint_logprobs(const nc::NdArray<long double> &probs_by_level);
+
+long double logsumexp(const nc::NdArray<long double> &arr);
+
 #endif
