@@ -87,4 +87,6 @@ subtract_matrices(const std::vector<std::vector<long double>> &mat1,
 std::vector<long double>
 matrix_to_vector(const std::vector<std::vector<long double>> &mat);
 
+std::string to_string(const std::vector<std::vector<long double>> &matrix);
+
 #endif

@@ -1,7 +1,6 @@
 #include "Model.h"
 #include "../Logger/Logger.h"
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <omp.h>
 
@@ -91,9 +90,6 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
       ref_intervals.erase(ref_intervals.begin());
     }
   }
-
-  std::cout << "T: {{" << T[0][0] << "," << T[0][1] << "},{" << T[1][0] << ","
-            << T[1][1] << "}}\n";
 
   std::vector<Interval> ref_intervals_augmented;
   ref_intervals_augmented.push_back(Interval(

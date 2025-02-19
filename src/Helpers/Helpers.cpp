@@ -555,3 +555,25 @@ matrix_to_vector(const std::vector<std::vector<long double>> &mat) {
 
   return mat[0];
 }
+
+std::string to_string(const std::vector<std::vector<long double>> &matrix) {
+  std::ostringstream oss;
+  oss << "[";
+
+  for (size_t i = 0; i < matrix.size(); ++i) {
+    if (i > 0)
+      oss << ", ";
+    oss << "[";
+
+    for (size_t j = 0; j < matrix[i].size(); ++j) {
+      if (j > 0)
+        oss << ", ";
+      oss << matrix[i][j];
+    }
+
+    oss << "]";
+  }
+
+  oss << "]";
+  return oss.str();
+}

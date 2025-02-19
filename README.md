@@ -10,8 +10,8 @@ bash run.sh
 
 ### TODO
 
-- implement `calculate_joint_pvalue` function from [joint_pvalue](https://github.com/fmfi-compbio/mc-overlaps/blob/bdc19acc5e0a8da200870442a8391cc0633392ef/src/simple_model.py#L78)
-- figure out a way to implement merge two consecutive P_DP tables, implement it into a function
+- finish debugging `eval_probs_single_chr_direct`, so generating generating transition matrices is checked, p-value returned is still 0.00000000000
+- figure out a way to implement merge two consecutive P_DP tables, implement it into a function (possibly can be done with `joint_logprobs`, but not sure, is next talking point)
 
 > [1] Askar Gafurov, Broňa Brejová, Paul Medvedev,
 > Markov chains improve the significance computation of overlapping genome annotations,
