@@ -2,7 +2,9 @@
 #include "../Interval/Interval.h"
 #include "../Logger/Logger.h"
 #include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -288,10 +290,10 @@ ChrSizesVector chr_sizes_map_to_array(ChrSizesMap &chr_sizes_map) {
   return chr_sizes_vector;
 }
 
-nc::NdArray<long double>
+std::vector<std::vector<long double>>
 get_base_transition_matrix(long long chr_size,
                            std::vector<Interval> &query_intervals) {
-  nc::NdArray<long double> t(2, 2);
+  std::vector<std::vector<long double>> t(2, std::vector<long double>(2));
 
   long double L = chr_size;
   long double len_Q = query_intervals.size();
@@ -299,17 +301,18 @@ get_base_transition_matrix(long long chr_size,
   for (Interval interval : query_intervals)
     weight_Q += interval.end - interval.begin;
 
-  t(0, 1) = (len_Q) / (L - weight_Q - 1);
-  t(0, 0) = 1 - t(0, 1);
+  t[0][1] = (len_Q) / (L - weight_Q - 1);
+  t[0][0] = 1 - t[0][1];
 
-  t(1, 0) = (len_Q) / (weight_Q);
-  t(1, 1) = 1 - t(1, 0);
+  t[1][0] = (len_Q) / (weight_Q);
+  t[1][1] = 1 - t[1][0];
 
   return t;
 }
 
 // returns T and T_mod (its just T, with zeros in second col)
-std::pair<nc::NdArray<long double>, nc::NdArray<long double>>
+std::pair<std::vector<std::vector<long double>>,
+          std::vector<std::vector<long double>>>
 get_transition_matrices(long long chr_size,
                         std::vector<Interval> &query_intervals) {
   if (query_intervals.empty()) {
@@ -317,38 +320,56 @@ get_transition_matrices(long long chr_size,
     exit(1);
   }
 
-  nc::NdArray<long double> t =
+  std::vector<std::vector<long double>> t =
       get_base_transition_matrix(chr_size, query_intervals);
-  nc::NdArray<long double> d(2, 2);
-  d(0, 0) = t(0, 0);
-  d(1, 0) = t(1, 0);
+  std::vector<std::vector<long double>> d(2, std::vector<long double>(2));
+  d[0][0] = t[0][0];
+  d[1][0] = t[1][0];
 
   return {t, d};
-}
-
-long double calculate_joint_pvalue(
-    std::vector<std::vector<long double>> &probs_by_chromosome,
-    long long overlap_count) {
-  return 0.;
 }
 
 template void extend<Interval>(std::vector<Interval> &,
                                const std::vector<Interval> &);
 
-nc::NdArray<long double> matrix_multiply(const nc::NdArray<long double> &mat1,
-                                         const nc::NdArray<long double> &mat2) {
-  if (mat1.numCols() != mat2.numRows()) {
+bool is_rectangle(const std::vector<std::vector<long double>> &mat) {
+  if (mat.empty())
+    return true;
+
+  for (size_t i = 0; i < mat.size(); i++)
+    if (mat[0].size() != mat[i].size())
+      return false;
+
+  return true;
+}
+
+// if mat is not empty or not rectangle, returns pair of {num_rows, num_cols};
+std::pair<int, int>
+get_mat_dimensions(const std::vector<std::vector<long double>> &mat) {
+  if (!is_rectangle(mat) || mat.empty()) {
+    logger.error("Matrix is not rectangle. Can't calculate dimensions.");
+    exit(1);
+  }
+
+  return {mat.size(), mat[0].size()};
+}
+
+std::vector<std::vector<long double>>
+matrix_multiply(const std::vector<std::vector<long double>> &mat1,
+                const std::vector<std::vector<long double>> &mat2) {
+  auto mat1_dim = get_mat_dimensions(mat1), mat2_dim = get_mat_dimensions(mat2);
+  if (mat1_dim.second != mat2_dim.first) {
     logger.error("Matrix dimensions do not match for multiplication.");
     exit(1);
   }
 
-  nc::NdArray<long double> result =
-      nc::zeros<long double>(mat1.numRows(), mat2.numCols());
+  std::vector<std::vector<long double>> result(
+      mat1_dim.first, std::vector<long double>(mat2_dim.second));
 
-  for (nc::uint32 i = 0; i < mat1.numRows(); ++i) {
-    for (nc::uint32 j = 0; j < mat2.numCols(); ++j) {
-      for (nc::uint32 k = 0; k < mat1.numCols(); ++k) {
-        result(i, j) += mat1(i, k) * mat2(k, j);
+  for (int i = 0; i < mat1_dim.first; ++i) {
+    for (int j = 0; j < mat2_dim.second; ++j) {
+      for (int k = 0; k < mat1_dim.second; ++k) {
+        result[i][j] += mat1[i][k] * mat2[k][j];
       }
     }
   }
@@ -356,16 +377,28 @@ nc::NdArray<long double> matrix_multiply(const nc::NdArray<long double> &mat1,
   return result;
 }
 
-nc::NdArray<long double>
-binary_exponentiation(const nc::NdArray<long double> &mat, long long power) {
-  if (mat.numRows() != mat.numCols()) {
+// checks if given matrix is a square
+bool is_square(const std::vector<std::vector<long double>> &mat) {
+  size_t rows = mat.size();
+  for (size_t row = 0; row < rows; row++)
+    if (mat[row].size() != rows)
+      return false;
+  return true;
+}
+
+std::vector<std::vector<long double>>
+binary_exponentiation(const std::vector<std::vector<long double>> &mat,
+                      long long power) {
+  if (!is_square(mat)) {
     logger.error("Matrix must be square for exponentiation.");
     exit(1);
   }
 
-  nc::NdArray<long double> result = nc::eye<long double>(mat.numRows());
+  std::vector<std::vector<long double>> result(mat.size());
+  for (size_t i = 0; i < result.size(); i++)
+    result[i][i] = 1;
 
-  nc::NdArray<long double> base = mat;
+  std::vector<std::vector<long double>> base = mat;
 
   while (power > 0) {
     if (power % 2 == 1)
@@ -377,12 +410,7 @@ binary_exponentiation(const nc::NdArray<long double> &mat, long long power) {
   return result;
 }
 
-nc::NdArray<long double>
-matrix_row_to_2d_matrix(const nc::NdArray<long double> &mat, size_t row_index) {
-  return mat.row(row_index).reshape(1, mat.numCols());
-}
-
-long double logsumexp(const nc::NdArray<long double> &values) {
+long double logsumexp(const std::vector<long double> &values) {
   const long double ld_inf = std::numeric_limits<long double>::infinity();
   if (values.size() == 0)
     return -ld_inf;
@@ -398,57 +426,132 @@ long double logsumexp(const nc::NdArray<long double> &values) {
   return max_value + log(sum);
 }
 
-// calculate joint p-value for a given `overlap_count`.
-// `p_values_by_level` should contain log-values
-long double joint_pvalue(const nc::NdArray<long double> &probs_by_level,
-                         long long overlap_count) {
-  if (overlap_count < 0)
-    return 1;
-
-  nc::NdArray<long double> logprobs = joint_logprobs(probs_by_level);
-  if (overlap_count >= probs_by_level.size())
-    return 0;
-
-  auto logprobsslice = logprobs(nc::Slice(overlap_count, logprobs.size()));
-  long double result = exp(
-      logsumexp(logprobs(nc::Slice(overlap_count, logprobs.size())).copy()));
-  return result;
-}
-
-nc::NdArray<long double>
-joint_logprobs(const nc::NdArray<long double> &probs_by_level) {
-  if (probs_by_level.size() == 0) {
+std::vector<long double>
+joint_logprobs(const std::vector<std::vector<long double>> &probs_by_chr) {
+  if (probs_by_chr.size() == 0) {
     logger.error("p-values should have at least one level!.");
     exit(1);
   }
 
-  for (size_t idx = 0; idx < probs_by_level.size(); idx++) {
-    if (probs_by_level[idx] == 0) {
+  for (size_t idx = 0; idx < probs_by_chr.size(); idx++) {
+    if (probs_by_chr[idx].size() == 0) {
       logger.error("Layers should be non-empty!");
       exit(1);
     }
   }
 
-  if (probs_by_level.numRows() == 1) {
-    return probs_by_level(0, nc::Slice()).copy();
+  if (probs_by_chr.size() == 1) {
+    return probs_by_chr[0];
   }
 
   long long max_k = 0;
-  for (size_t idx = 0; idx < probs_by_level.size(); idx++)
-    max_k += probs_by_level(idx, nc::Slice()).size() - 1;
+  for (size_t idx = 0; idx < probs_by_chr.size(); idx++)
+    max_k += probs_by_chr[idx].size() - 1;
 
   const long double ld_inf = std::numeric_limits<long double>::infinity();
 
-  nc::NdArray<long double> prev_row(max_k + 1);
-  for (size_t idx = 0; idx <= max_k; idx++)
-    prev_row[idx] = -ld_inf;
+  std::vector<long double> prev_row(max_k + 1, -ld_inf);
+  for (size_t pos = 0; pos < probs_by_chr[0].size(); pos++)
+    prev_row[pos] = probs_by_chr[0][pos];
 
-  for (size_t pos = 0; pos < probs_by_level(0, nc::Slice()).size(); pos++)
-    prev_row[pos] = probs_by_level(0, pos);
+  std::vector<long double> next_row(max_k + 1, -ld_inf);
 
-  nc::NdArray<long double> next_row(max_k + 1);
-  for (size_t idx = 0; idx <= max_k; idx++)
-    next_row[idx] = -ld_inf;
-  nc::NdArray<long double> accum;
-  for (size_it props_by_level_idx = 1; probs_by_level.probs_by_level.numRows();)
+  std::vector<long double> accum;
+  for (std::vector<long double> level : std::vector<std::vector<long double>>(
+           probs_by_chr.begin() + 1, probs_by_chr.end())) {
+    for (long long k = 0; k <= max_k; k++) {
+      long long accum_size = std::min(k + 1, (long long)level.size());
+      accum.resize(accum_size);
+      for (int j = 0; j < accum_size; j++)
+        accum[j] = level[j] + prev_row[k - j];
+
+      next_row[k] = logsumexp(accum);
+      accum.clear();
+    }
+
+    prev_row = next_row;
+  }
+
+  return next_row;
+}
+
+// calculate joint p-value for a given `overlap_count`.
+// `p_values_by_level` should contain log-values
+long double calculate_joint_pvalue(
+    const std::vector<std::vector<long double>> &probs_by_chr,
+    long long overlap_count) {
+  if (overlap_count < 0)
+    return 1;
+
+  std::vector<long double> logprobs = joint_logprobs(probs_by_chr);
+  if (overlap_count >= (long long)probs_by_chr.size())
+    return 0;
+
+  long double result = exp(logsumexp(std::vector<long double>(
+      logprobs.begin() + overlap_count, logprobs.end())));
+  return result;
+}
+
+std::vector<std::vector<long double>>
+vector_to_2d_matrix(const std::vector<long double> &vec) {
+  std::vector<std::vector<long double>> res(1);
+  res[0] = vec;
+  return res;
+}
+
+bool same_dimensions(const std::vector<std::vector<long double>> &mat1,
+
+                     const std::vector<std::vector<long double>> &mat2) {
+
+  auto mat1_dim = get_mat_dimensions(mat1), mat2_dim = get_mat_dimensions(mat2);
+  return mat1_dim == mat2_dim;
+}
+
+std::vector<std::vector<long double>>
+add_matrices(const std::vector<std::vector<long double>> &mat1,
+             const std::vector<std::vector<long double>> &mat2) {
+  if (!same_dimensions(mat1, mat2)) {
+    logger.error("Can't add matrices. They don't have the same dimensions.");
+    exit(1);
+  }
+
+  auto dim = get_mat_dimensions(mat1);
+  std::vector<std::vector<long double>> result(
+      dim.first, std::vector<long double>(dim.second));
+  for (int i = 0; i < dim.first; i++)
+    for (int j = 0; j < dim.second; j++)
+      result[i][j] = mat1[i][j] + mat2[i][j];
+
+  return result;
+}
+
+std::vector<std::vector<long double>>
+subtract_matrices(const std::vector<std::vector<long double>> &mat1,
+                  const std::vector<std::vector<long double>> &mat2) {
+
+  if (!same_dimensions(mat1, mat2)) {
+    logger.error(
+        "Can't subtract matrices. They don't have the same dimensions.");
+    exit(1);
+  }
+
+  auto dim = get_mat_dimensions(mat1);
+  std::vector<std::vector<long double>> result(
+      dim.first, std::vector<long double>(dim.second));
+  for (int i = 0; i < dim.first; i++)
+    for (int j = 0; j < dim.second; j++)
+      result[i][j] = mat1[i][j] - mat2[i][j];
+
+  return result;
+}
+
+std::vector<long double>
+matrix_to_vector(const std::vector<std::vector<long double>> &mat) {
+  if (mat.size() != 1) {
+    logger.error("Invalid matrix dimensions for converting into vector. Only "
+                 "possible for matrices with dimensions 1xN");
+    exit(1);
+  }
+
+  return mat[0];
 }

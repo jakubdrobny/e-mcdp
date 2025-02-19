@@ -2,7 +2,6 @@
 #define HELPERS_H
 
 #include "../Interval/Interval.h"
-#include "NumCpp.hpp"
 
 #include <string>
 #include <unordered_map>
@@ -40,36 +39,52 @@ get_sorted_chr_names_from_intervals(std::vector<Interval> intervals);
 ChrSizesVector
 chr_sizes_map_to_array(std::unordered_map<std::string, long long> &chr_sizes);
 
-long double calculate_joint_pvalue(
-    std::vector<std::vector<long double>> &probs_by_chromosome,
-    long long overlap_count);
+long double
+calculate_joint_pvalue(std::vector<std::vector<long double>> &probs_by_chr,
+                       long long overlap_count);
 
-nc::NdArray<long double>
+std::vector<std::vector<long double>>
 get_base_transition_matrix(long long chr_size,
                            std::vector<Interval> &query_intervals);
 
-std::pair<nc::NdArray<long double>, nc::NdArray<long double>>
+std::pair<std::vector<std::vector<long double>>,
+          std::vector<std::vector<long double>>>
 get_transition_matrices(long long chr_size,
                         std::vector<Interval> &query_intervals);
 
 template <typename T>
 void extend(std::vector<T> &self, const std::vector<T> &other);
 
-nc::NdArray<long double> matrix_multiply(const nc::NdArray<long double> &mat1,
-                                         const nc::NdArray<long double> &mat2);
+std::vector<std::vector<long double>>
+matrix_multiply(const std::vector<std::vector<long double>> &mat1,
+                const std::vector<std::vector<long double>> &mat2);
 
-nc::NdArray<long double>
-binary_exponentiation(const nc::NdArray<long double> &mat, long long power);
+std::vector<std::vector<long double>>
+binary_exponentiation(const std::vector<std::vector<long double>> &mat,
+                      long long power);
 
-nc::NdArray<long double>
-matrix_row_to_2d_matrix(const nc::NdArray<long double> &mat, size_t row_index);
+std::vector<long double>
+joint_logprobs(const std::vector<long double> &probs_by_chr);
 
-long double joint_pvalue(const nc::NdArray<long double> &probs_by_level,
-                         long long overlap_count);
+long double logsumexp(const std::vector<long double> &arr);
 
-nc::NdArray<long double>
-joint_logprobs(const nc::NdArray<long double> &probs_by_level);
+bool is_rectangle(const std::vector<std::vector<long double>> &mat);
 
-long double logsumexp(const nc::NdArray<long double> &arr);
+std::pair<int, int>
+get_mat_dimensions(const std::vector<std::vector<long double>> &mat);
+
+std::vector<std::vector<long double>>
+vector_to_2d_matrix(const std::vector<long double> &vec);
+
+std::vector<std::vector<long double>>
+add_matrices(const std::vector<std::vector<long double>> &mat1,
+             const std::vector<std::vector<long double>> &mat2);
+
+std::vector<std::vector<long double>>
+subtract_matrices(const std::vector<std::vector<long double>> &mat1,
+                  const std::vector<std::vector<long double>> &mat2);
+
+std::vector<long double>
+matrix_to_vector(const std::vector<std::vector<long double>> &mat);
 
 #endif
