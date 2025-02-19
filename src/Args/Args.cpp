@@ -33,6 +33,13 @@ void Args::parse_args(int argc, char *argv[]) {
       } else {
         log_failed_to_parse_args(flag);
       }
+    } else if (flag == "--method") {
+      if (i + 1 < argc) {
+        method = argv[++i];
+        logger.info("Parsed --method: " + output_file_path);
+      } else {
+        log_failed_to_parse_args(flag);
+      }
     } else {
       log_invalid_arg(flag);
     }
@@ -46,6 +53,7 @@ void Args::debug_args() {
   logger.debug("ref_intervals_file_path: " + ref_intervals_file_path);
   logger.debug("query_intervals_file_path: " + query_intervals_file_path);
   logger.debug("chr_size_file_path: " + chr_size_file_path);
+  logger.debug("method: " + method);
 }
 
 void Args::log_failed_to_parse_args(const std::string &flag) {
@@ -68,7 +76,8 @@ void Args::check_missing_args() {
     missing_args += " --chs";
 
   if (!missing_args.empty()) {
-    logger.error("Following arguments are missing:" + missing_args + ". Exiting.");
+    logger.error("Following arguments are missing:" + missing_args +
+                 ". Exiting.");
     exit(1);
   }
 }

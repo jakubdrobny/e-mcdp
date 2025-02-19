@@ -1,6 +1,7 @@
 #include "Model.h"
 #include "../Logger/Logger.h"
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <omp.h>
 
@@ -41,7 +42,7 @@ Model::select_intervals_by_chr_name(std::vector<Interval> &intervals,
 }
 
 long double Model::eval_pvalue(long long overlap_count) {
-  std::vector<std::vector<long double>> probs_by_chromosome(chr_sizes.size());
+  std::vector<std::vector<long double>> probs_by_chr(chr_sizes.size());
   std::vector<std::vector<Interval>> ref_intervals_by_chr(chr_sizes.size()),
       query_intervals_by_chr(chr_sizes.size());
 
@@ -63,11 +64,11 @@ long double Model::eval_pvalue(long long overlap_count) {
     std::vector<long double> probs =
         prob_method(ref_intervals_by_chr[chr_sizes_idx],
                     query_intervals_by_chr[chr_sizes_idx], chr_size);
-    probs_by_chromosome[chr_sizes_idx] = probs;
+    probs_by_chr[chr_sizes_idx] = probs;
   }
 
   long double joint_pvalue =
-      calculate_joint_pvalue(probs_by_chromosome, overlap_count);
+      calculate_joint_pvalue(probs_by_chr, overlap_count);
   return joint_pvalue;
 }
 
@@ -81,7 +82,6 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
   auto transition_matrics = get_transition_matrices(chr_size, query_intervals);
   std::vector<std::vector<long double>> T = transition_matrics.first,
                                         D = transition_matrics.second;
-
   int m = ref_intervals.size();
   if (ref_intervals[0].begin == 0) {
     logger.warn("First reference interval starts with zero, changing to one!");
@@ -91,6 +91,9 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
       ref_intervals.erase(ref_intervals.begin());
     }
   }
+
+  std::cout << "T: {{" << T[0][0] << "," << T[0][1] << "},{" << T[1][0] << ","
+            << T[1][1] << "}}\n";
 
   std::vector<Interval> ref_intervals_augmented;
   ref_intervals_augmented.push_back(Interval(

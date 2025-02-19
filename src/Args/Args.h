@@ -15,6 +15,7 @@ public:
   std::string ref_intervals_file_path;
   std::string query_intervals_file_path;
   std::string output_file_path;
+  std::string method = "direct";
 
 private:
   Logger &logger;

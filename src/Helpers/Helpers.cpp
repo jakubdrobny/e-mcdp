@@ -395,8 +395,10 @@ binary_exponentiation(const std::vector<std::vector<long double>> &mat,
   }
 
   std::vector<std::vector<long double>> result(mat.size());
-  for (size_t i = 0; i < result.size(); i++)
+  for (size_t i = 0; i < result.size(); i++) {
+    result[i].resize(mat.size());
     result[i][i] = 1;
+  }
 
   std::vector<std::vector<long double>> base = mat;
 
@@ -494,9 +496,7 @@ long double calculate_joint_pvalue(
 
 std::vector<std::vector<long double>>
 vector_to_2d_matrix(const std::vector<long double> &vec) {
-  std::vector<std::vector<long double>> res(1);
-  res[0] = vec;
-  return res;
+  return std::vector<std::vector<long double>>{vec};
 }
 
 bool same_dimensions(const std::vector<std::vector<long double>> &mat1,

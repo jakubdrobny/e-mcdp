@@ -39,9 +39,9 @@ get_sorted_chr_names_from_intervals(std::vector<Interval> intervals);
 ChrSizesVector
 chr_sizes_map_to_array(std::unordered_map<std::string, long long> &chr_sizes);
 
-long double
-calculate_joint_pvalue(std::vector<std::vector<long double>> &probs_by_chr,
-                       long long overlap_count);
+long double calculate_joint_pvalue(
+    const std::vector<std::vector<long double>> &probs_by_chr,
+    long long overlap_count);
 
 std::vector<std::vector<long double>>
 get_base_transition_matrix(long long chr_size,
