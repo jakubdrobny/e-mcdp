@@ -1,4 +1,4 @@
-#include "Interval.h"
+#include "Interval.hpp"
 #include <string>
 
 Interval::Interval() : chr_name(), begin(), end() {}

@@ -1,6 +1,7 @@
-#include "Model.h"
-#include "../Logger/Logger.h"
+#include "Model.hpp"
+#include "../Logger/Logger.hpp"
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <omp.h>
 
@@ -56,6 +57,7 @@ long double Model::eval_pvalue(long long overlap_count) {
         query_intervals, query_idx, chr_name);
   }
 
+// sometimes turned off for debugging
 #pragma omp parallel for
   for (size_t chr_sizes_idx = 0; chr_sizes_idx < chr_sizes.size();
        chr_sizes_idx++) {
@@ -123,7 +125,7 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
     }
 
     std::vector<std::vector<long double>> result =
-        matrix_multiply(vector_to_2d_matrix(prev_line[j]),
+        matrix_multiply(vector_to_2d_matrix(prev_line[j - 1]),
                         matrix_multiply(binary_exponentiation(T, gap),
                                         binary_exponentiation(D, len)));
     if (result.size() != 1) {
@@ -176,6 +178,7 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
           matrix_multiply(binary_exponentiation(T, gap),
                           subtract_matrices(binary_exponentiation(T, len),
                                             binary_exponentiation(D, len))));
+
       // P[j,k] = dont_hit + hit
       next_line[j] = matrix_to_vector(add_matrices(dont_hit, hit));
     }
@@ -187,9 +190,8 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
   }
 
   std::vector<long double> probs(m + 1);
-  for (int k = 0; k <= m; k++) {
+  for (int k = 0; k <= m; k++)
     probs[k] = log(last_col[k][0] + last_col[k][1]);
-  }
 
   return probs;
 }

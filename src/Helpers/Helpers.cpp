@@ -1,9 +1,11 @@
-#include "Helpers.h"
-#include "../Interval/Interval.h"
-#include "../Logger/Logger.h"
+#include "Helpers.hpp"
+#include "../Interval/Interval.hpp"
+#include "../Logger/Logger.hpp"
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
@@ -257,7 +259,8 @@ long long count_overlaps(std::vector<Interval> ref_intervals,
   auto get_chr_intervals = [](std::vector<Interval> &intervals, int &idx,
                               std::string chr_name) {
     std::vector<Interval> chr_intervals;
-    for (; intervals[idx].chr_name <= chr_name; idx++)
+    for (; idx < (int)intervals.size() && intervals[idx].chr_name <= chr_name;
+         idx++)
       if (intervals[idx].chr_name == chr_name)
         chr_intervals.push_back(intervals[idx]);
     return chr_intervals;
@@ -423,7 +426,7 @@ long double logsumexp(const std::vector<long double> &values) {
 
   long double sum = 0.0L;
   for (long double value : values)
-    sum += value;
+    sum += exp(value - max_value);
 
   return max_value + log(sum);
 }
@@ -436,7 +439,7 @@ joint_logprobs(const std::vector<std::vector<long double>> &probs_by_chr) {
   }
 
   for (size_t idx = 0; idx < probs_by_chr.size(); idx++) {
-    if (probs_by_chr[idx].size() == 0) {
+    if (probs_by_chr[idx].empty()) {
       logger.error("Layers should be non-empty!");
       exit(1);
     }
@@ -466,11 +469,9 @@ joint_logprobs(const std::vector<std::vector<long double>> &probs_by_chr) {
       accum.resize(accum_size);
       for (int j = 0; j < accum_size; j++)
         accum[j] = level[j] + prev_row[k - j];
-
       next_row[k] = logsumexp(accum);
       accum.clear();
     }
-
     prev_row = next_row;
   }
 
@@ -486,7 +487,7 @@ long double calculate_joint_pvalue(
     return 1;
 
   std::vector<long double> logprobs = joint_logprobs(probs_by_chr);
-  if (overlap_count >= (long long)probs_by_chr.size())
+  if (overlap_count >= (long long)logprobs.size())
     return 0;
 
   long double result = exp(logsumexp(std::vector<long double>(
@@ -575,5 +576,25 @@ std::string to_string(const std::vector<std::vector<long double>> &matrix) {
   }
 
   oss << "]";
+  return oss.str();
+}
+
+std::string to_string(const std::vector<long double> &vec) {
+  std::ostringstream oss;
+  oss << "[";
+
+  for (size_t i = 0; i < vec.size(); ++i) {
+    if (i > 0)
+      oss << ", ";
+    oss << vec[i];
+  }
+
+  oss << "]";
+  return oss.str();
+}
+
+std::string to_string(const long double &val) {
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(30) << val;
   return oss.str();
 }

@@ -1,8 +1,10 @@
-#include "Args/Args.h"
-#include "Helpers/Helpers.h"
-#include "Logger/Logger.h"
-#include "Model/Model.h"
+#include "Args/Args.hpp"
+#include "Helpers/Helpers.hpp"
+#include "Logger/Logger.hpp"
+#include "Model/Model.hpp"
+#include "Timer/Timer.hpp"
 
+#include <chrono>
 #include <gtest/gtest.h>
 #include <string>
 #include <unordered_map>
@@ -41,6 +43,9 @@ int main(int argc, char *argv[]) {
   std::unordered_map<std::string, long long> chr_sizes =
       load_chr_sizes(args.chr_size_file_path);
 
+  // measure time from here, previous parts are just tests and i/o
+  Timer timer;
+
   size_t raw_ref_count = ref_intervals.size();
   size_t raw_query_count = query_intervals.size();
 
@@ -68,8 +73,13 @@ int main(int argc, char *argv[]) {
   logger.info("Overlap count: " + std::to_string(overlap_count));
 
   Model model(ref_intervals, query_intervals, chr_sizes, args.method);
+
   long double p_value = model.eval_pvalue(overlap_count);
-  logger.info("eval_pvalue: p-value=" + std::to_string(p_value));
+  logger.info("eval_pvalue: p-value=" + to_string(p_value));
+
+  logger.debug("Time taken by program: " +
+               std::to_string(timer.elapsed<std::chrono::milliseconds>()) +
+               " milliseconds\n");
 
   return 0;
 }

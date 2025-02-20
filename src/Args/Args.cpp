@@ -1,4 +1,4 @@
-#include "Args.h"
+#include "Args.hpp"
 
 Args::Args(Logger &logger) : logger(logger) {}
 

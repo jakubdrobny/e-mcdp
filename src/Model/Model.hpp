@@ -1,8 +1,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "../Helpers/Helpers.h"
-#include "../Interval/Interval.h"
+#include "../Helpers/Helpers.hpp"
+#include "../Interval/Interval.hpp"
 #include <functional>
 #include <vector>
 

@@ -1,7 +1,7 @@
 #ifndef ARGS_H
 #define ARGS_H
 
-#include "../Logger/Logger.h"
+#include "../Logger/Logger.hpp"
 #include <string>
 
 class Args {
