@@ -20,6 +20,8 @@ Logs will be in the `data/output` directory.
 
 ### TODO
 
+- add `--windows.source=file|basic`, `--windows.path=<path_to_file_with_windows_definitions>` and `--windows.size=<used with basic flag, will create consecutive windows of this size, long long int>` flags
+- implement solving for set of windows, each window separately
 - figure out a way to implement merge two consecutive P_DP tables, implement it into a function (possibly can be done with `joint_logprobs`, but not sure, is next talking point)
 
 > [1] Askar Gafurov, Broňa Brejová, Paul Medvedev,

@@ -43,9 +43,6 @@ int main(int argc, char *argv[]) {
   std::unordered_map<std::string, long long> chr_sizes =
       load_chr_sizes(args.chr_size_file_path);
 
-  // measure time from here, previous parts are just tests and i/o
-  Timer timer;
-
   size_t raw_ref_count = ref_intervals.size();
   size_t raw_query_count = query_intervals.size();
 
@@ -74,12 +71,14 @@ int main(int argc, char *argv[]) {
 
   Model model(ref_intervals, query_intervals, chr_sizes, args.method);
 
+  // measure time from here, previous parts are just tests and i/o
+  Timer timer;
   long double p_value = model.eval_pvalue(overlap_count);
+  long double duration = timer.elapsed<std::chrono::milliseconds>();
+
   logger.info("eval_pvalue: p-value=" + to_string(p_value));
 
-  logger.debug("Time taken by program: " +
-               std::to_string(timer.elapsed<std::chrono::milliseconds>()) +
+  logger.debug("Time taken to calculate p-value: " + std::to_string(duration) +
                " milliseconds\n");
-
   return 0;
 }

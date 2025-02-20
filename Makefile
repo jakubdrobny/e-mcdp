@@ -4,6 +4,9 @@ CXXFLAGS := -Wall -O2 -std=c++20 -fopenmp
 SOURCES := $(wildcard src/*.cpp) $(wildcard src/**/*.cpp)
 BIN := bin/e-mcdp
 
+# enable sequential prerequisites execution
+.NOTPARALLEL:
+
 all: $(BIN)
 
 $(BIN): $(SOURCES)
@@ -18,13 +21,16 @@ clean:
 	@rm -rf bin
 	@echo "Cleaned bin directory."
 
-run_simple_pvalue: $(BIN) 
+run_simple_pvalue: clean $(BIN) 
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --o $(OUTPUT_PATH)
 
-run_simple_pvalue_console: $(BIN) 
+run_simple_pvalue_console: clean $(BIN) 
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH)
 
-run_sample: $(BIN)
+run_sample_console: clean $(BIN)
 	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv
 
-.PHONY: all clean install test
+run_sample: clean $(BIN)
+	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --o data/output/01-sample-data-hirt.txt
+
+.PHONY: all clean install test run_simple_pvalue_console run_simple_pvalue run_sample_console run_sample

@@ -1,0 +1,14 @@
+[2025-02-20 19:42:07] - [INFO]	- Loading reference interval set from: data/01-sample-data/tcga-ref-intervals.tsv
+[2025-02-20 19:42:07] - [INFO]	- Loading query interval set from: data/01-sample-data/hirt-query-intervals.tsv
+[2025-02-20 19:42:07] - [INFO]	- Loading chromosome sizes from: data/01-sample-data/chr-sizes.tsv
+[2025-02-20 19:42:07] - [INFO]	- Number of reference intervals: 101 (6521 before merging)
+[2025-02-20 19:42:07] - [INFO]	- Number of query intervals: 116 (247 before merging)
+[2025-02-20 19:42:07] - [INFO]	- Number of chromosomes: 24
+[2025-02-20 19:42:07] - [INFO]	- Overlap count: 54
+[2025-02-20 19:42:07] - [DEBUG]	- Processing 10-th line out of 10 rows of DP table...
+[2025-02-20 19:42:07] - [DEBUG]	- Processing 10-th line out of 11 rows of DP table...
+[2025-02-20 19:42:07] - [DEBUG]	- Processing 10-th line out of 18 rows of DP table...
+[2025-02-20 19:42:07] - [DEBUG]	- Processing 10-th line out of 16 rows of DP table...
+[2025-02-20 19:42:07] - [DEBUG]	- Time taken by program: 19.000000 milliseconds
+
+[2025-02-20 19:42:07] - [INFO]	- eval_pvalue: p-value=0.000202107732635214656273861533
