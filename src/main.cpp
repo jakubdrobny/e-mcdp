@@ -73,6 +73,16 @@ int main(int argc, char *argv[]) {
     // ideme pocitat pre okna
     logger.info("Loading window sizes...");
     std::vector<Interval> windows = load_windows(args, chr_sizes);
+    windows = filter_intervals_by_chr_name(windows, chr_names);
+    windows = remove_empty_intervals(windows);
+    std::sort(windows.begin(), windows.end());
+
+    std::sort(ref_intervals.begin(), ref_intervals.end());
+    std::sort(query_intervals.begin(), query_intervals.end());
+
+    for (size_t windows_idx = 0, ref_idx = 0, query_idx = 0;
+         windows_idx < windows.size(); windows_idx++) {
+    }
   } else {
     // ideme pocitat pre cely genom spolu
     Model model(ref_intervals, query_intervals, chr_sizes, args.method);
