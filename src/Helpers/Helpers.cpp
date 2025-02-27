@@ -83,6 +83,33 @@ std::vector<Interval> load_intervals(const std::string &file_path,
   return intervals;
 }
 
+// assumes args.check_invalid_args has already been run
+std::vector<Interval>
+load_windows(Args &args,
+             std::unordered_map<std::string, long long> &chr_sizes) {
+  std::vector<Interval> windows;
+
+  if (args.windows_source == "basic") {
+    std::vector<std::pair<std::string, long long>> chr_sizes_vec(
+        chr_sizes.begin(), chr_sizes.end());
+    std::sort(chr_sizes_vec.begin(), chr_sizes_vec.end());
+    for (std::pair<std::string, long long> chr : chr_sizes) {
+      std::string chr_name = chr.first;
+      long long chr_size = chr.second;
+      long long l = 0, r = args.windows_size;
+      while (l < chr_size) {
+        windows.push_back({chr_name, l, r});
+        l = r;
+        r = std::min(chr_size, r + args.windows_size);
+      }
+    }
+  } else if (args.windows_source == "file") {
+    windows = load_intervals(args.windows_path);
+  }
+
+  return windows;
+}
+
 ChrSizesMap load_chr_sizes(const std::string &file_path) {
   ChrSizesMap chr_sizes;
 

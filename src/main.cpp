@@ -69,16 +69,24 @@ int main(int argc, char *argv[]) {
   long long overlap_count = count_overlaps(ref_intervals, query_intervals);
   logger.info("Overlap count: " + std::to_string(overlap_count));
 
-  Model model(ref_intervals, query_intervals, chr_sizes, args.method);
+  if (!args.windows_source.empty()) {
+    // ideme pocitat pre okna
+    logger.info("Loading window sizes...");
+    std::vector<Interval> windows = load_windows(args, chr_sizes);
+  } else {
+    // ideme pocitat pre cely genom spolu
+    Model model(ref_intervals, query_intervals, chr_sizes, args.method);
 
-  // measure time from here, previous parts are just tests and i/o
-  Timer timer;
-  long double p_value = model.eval_pvalue(overlap_count);
-  long double duration = timer.elapsed<std::chrono::milliseconds>();
+    // measure time from here, previous parts are just tests and i/o
+    Timer timer;
+    long double p_value = model.eval_pvalue(overlap_count);
+    long double duration = timer.elapsed<std::chrono::milliseconds>();
 
-  logger.info("eval_pvalue: p-value=" + to_string(p_value));
+    logger.info("eval_pvalue: p-value=" + to_string(p_value));
 
-  logger.debug("Time taken to calculate p-value: " + std::to_string(duration) +
-               " milliseconds\n");
+    logger.debug("Time taken to calculate p-value: " +
+                 std::to_string(duration) + " milliseconds\n");
+  }
+
   return 0;
 }

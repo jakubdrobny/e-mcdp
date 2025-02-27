@@ -1,6 +1,7 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
+#include "../Args/Args.hpp"
 #include "../Interval/Interval.hpp"
 
 #include <string>
@@ -90,5 +91,8 @@ matrix_to_vector(const std::vector<std::vector<long double>> &mat);
 std::string to_string(const std::vector<std::vector<long double>> &matrix);
 std::string to_string(const std::vector<long double> &vec);
 std::string to_string(const long double &val);
+
+std::vector<Interval>
+load_windows(Args &args, std::unordered_map<std::string, long long> &chr_sizes);
 
 #endif
