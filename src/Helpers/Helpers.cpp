@@ -55,6 +55,11 @@ std::vector<Interval> load_intervals(const std::string &file_path,
   std::vector<Interval> intervals;
 
   std::ifstream input_file(file_path);
+  if (!input_file.is_open()) {
+    logger.error("Failed to open intervals file: " + file_path);
+    exit(1);
+  }
+
   std::string line;
   while (std::getline(input_file, line)) {
     Interval interval = parse_intervals_line(line);
@@ -82,6 +87,11 @@ ChrSizesMap load_chr_sizes(const std::string &file_path) {
   ChrSizesMap chr_sizes;
 
   std::ifstream input_file(file_path);
+  if (!input_file.is_open()) {
+    logger.error("Failed to open chromosome sizes file: " + file_path);
+    exit(1);
+  }
+
   std::string line;
   while (getline(input_file, line)) {
     std::vector<std::string> vals = split_string(line, '\t', 2);
