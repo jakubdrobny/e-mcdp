@@ -40,12 +40,33 @@ void Args::parse_args(int argc, char *argv[]) {
       } else {
         log_failed_to_parse_args(flag);
       }
+    } else if (flag == "--windows.source") {
+      if (i + 1 < argc) {
+        windows_source = argv[++i];
+        logger.info("Parsed --windows.source: " + windows_source);
+      } else {
+        log_failed_to_parse_args(flag);
+      }
+    } else if (flag == "--windows.path") {
+      if (i + 1 < argc) {
+        windows_path = argv[++i];
+        logger.info("Parsed --windows.path: " + windows_path);
+      } else {
+        log_failed_to_parse_args(flag);
+      }
+    } else if (flag == "--windows.size") {
+      if (i + 1 < argc) {
+        windows_size = argv[++i];
+        logger.info("Parse --windows.size: " + windows_size);
+      } else {
+        log_failed_to_parse_args(flag);
+      }
     } else {
       log_invalid_arg(flag);
     }
   }
 
-  check_missing_args();
+  check_required_args();
 }
 
 void Args::debug_args() {
@@ -57,16 +78,16 @@ void Args::debug_args() {
 }
 
 void Args::log_failed_to_parse_args(const std::string &flag) {
-  logger.error("Argument " + flag + " is missing. Exiting.");
+  logger.error("Argument " + flag + " is missing.");
   exit(1);
 }
 
 void Args::log_invalid_arg(const std::string &flag) {
-  logger.error("Invalid argument " + flag + ". Exiting.");
+  logger.error("Invalid argument " + flag + ".");
   exit(1);
 }
 
-void Args::check_missing_args() {
+void Args::check_required_args() {
   std::string missing_args;
   if (query_intervals_file_path.empty())
     missing_args += " --q";
@@ -76,8 +97,28 @@ void Args::check_missing_args() {
     missing_args += " --chs";
 
   if (!missing_args.empty()) {
-    logger.error("Following arguments are missing:" + missing_args +
-                 ". Exiting.");
+    logger.error("Following arguments are missing:" + missing_args + ".");
+    exit(1);
+  }
+}
+
+void Args::check_invalid_args() {
+  if (!windows_source.empty() && windows_source != "file" &&
+      windows_source != "basic") {
+    logger.error(
+        "--windows.source flag can only have values of file or basic.");
+    exit(1);
+  }
+
+  if (windows_source == "file" && windows_path.empty()) {
+    logger.error(
+        "--windows.source set to file, but --windows.path was not set.");
+    exit(1);
+  }
+
+  if (windows_source == "basic" && windows_size <= 0) {
+    logger.error("--windows.source set to basic, but --windows.size was not "
+                 "set (or was set to <= 0, which is also invalid)");
     exit(1);
   }
 }

@@ -29,7 +29,7 @@ std::vector<std::string> split_string(std::string str, char delimeter,
 
   if (exp_elem_cnt > 0 && vals.size() != exp_elem_cnt) {
     logger.error("Expected " + std::to_string(exp_elem_cnt) + " values in " +
-                 str + " split by " + delimeter + ". Exiting...");
+                 str + " split by " + delimeter + ".");
     exit(1);
   }
 
@@ -43,7 +43,7 @@ Interval parse_intervals_line(std::string line) {
 
   if (vals.size() != exp_elem_cnt) {
     logger.error("Invalid line format on line: " + line +
-                 ". Should be {chr_name} {begin} {end}. Exiting...");
+                 ". Should be {chr_name} {begin} {end}.");
     exit(1);
   }
 
@@ -63,12 +63,12 @@ std::vector<Interval> load_intervals(const std::string &file_path,
 
     if (interval.begin >= interval.end) {
       logger.error("Begin should be strictly smaller than end in stated "
-                   "intervals. Exiting...");
+                   "intervals.");
       exit(1);
     }
 
     if (interval.begin < 0 || interval.end < 0) {
-      logger.error("Interval bounds should be non-negative. Exiting...");
+      logger.error("Interval bounds should be non-negative.");
       exit(1);
     }
 
@@ -90,12 +90,12 @@ ChrSizesMap load_chr_sizes(const std::string &file_path) {
 
     if (chr_sizes.count(chr_name)) {
       logger.error("Size for chromosome " + chr_name +
-                   " specified more than once. Exiting...");
+                   " specified more than once.");
       exit(1);
     }
 
     if (chr_size < 0) {
-      logger.error("Chromosome sizes should be position numbers. Exiting...");
+      logger.error("Chromosome sizes should be position numbers.");
       exit(1);
     }
 

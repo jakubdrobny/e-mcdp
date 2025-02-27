@@ -8,7 +8,7 @@ Logger::Logger(const std::string &output_path) {
   if (!output_path.empty()) {
     file_output.open(output_path, std::ios::trunc);
     if (!file_output.is_open()) {
-      std::cerr << "Failed to open log file: " + output_path << ". Exiting.\n";
+      std::cerr << "Failed to open log file: " + output_path << ".\n";
       exit(1);
     }
     log_to_file = true;

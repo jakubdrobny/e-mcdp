@@ -16,13 +16,17 @@ public:
   std::string query_intervals_file_path;
   std::string output_file_path;
   std::string method = "direct";
+  std::string windows_source;
+  std::string windows_path;
+  long long windows_size;
 
 private:
   Logger &logger;
 
   void log_failed_to_parse_args(const std::string &flag);
   void log_invalid_arg(const std::string &flag);
-  void check_missing_args();
+  void check_required_args();
+  void check_invalid_args();
 };
 
 #endif // ARGS_H
