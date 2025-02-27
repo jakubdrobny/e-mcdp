@@ -19,6 +19,7 @@ public:
   std::string windows_source;
   std::string windows_path;
   long long windows_size;
+  long long windows_step;
 
 private:
   Logger &logger;

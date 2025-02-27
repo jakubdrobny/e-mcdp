@@ -1,4 +1,5 @@
 #include "Args.hpp"
+#include <vector>
 
 Args::Args(Logger &logger) : logger(logger) {}
 
@@ -56,8 +57,15 @@ void Args::parse_args(int argc, char *argv[]) {
       }
     } else if (flag == "--windows.size") {
       if (i + 1 < argc) {
-        windows_size = argv[++i];
-        logger.info("Parse --windows.size: " + windows_size);
+        windows_size = std::stoll(argv[++i]);
+        logger.info("Parse --windows.size: " + std::to_string(windows_size));
+      } else {
+        log_failed_to_parse_args(flag);
+      }
+    } else if (flag == "--windows.step") {
+      if (i + 1 < argc) {
+        windows_step = std::stoll(argv[++i]);
+        logger.info("Parse --windows.step: " + std::to_string(windows_step));
       } else {
         log_failed_to_parse_args(flag);
       }
@@ -104,9 +112,9 @@ void Args::check_required_args() {
 
 void Args::check_invalid_args() {
   if (!windows_source.empty() && windows_source != "file" &&
-      windows_source != "basic") {
+      windows_source != "basic" && windows_source != "dense") {
     logger.error(
-        "--windows.source flag can only have values of file or basic.");
+        "--windows.source flag can only have values of file, basic or dense.");
     exit(1);
   }
 
@@ -120,5 +128,20 @@ void Args::check_invalid_args() {
     logger.error("--windows.source set to basic, but --windows.size was not "
                  "set (or was set to <= 0, which is also invalid)");
     exit(1);
+  }
+
+  if (windows_source == "dense") {
+    std::vector<std::pair<std::string, bool>> conditions = {
+        {"--windows.size", (windows_size <= 0)},
+        {"--windows.step", (windows_step <= 0)}};
+
+    for (auto entry : conditions) {
+      if (entry.second) {
+        logger.error("--windows.source set to dense, but " + entry.first +
+                     " was not "
+                     "set (or was set to <= 0, which is also invalid)");
+        exit(1);
+      }
+    }
   }
 }

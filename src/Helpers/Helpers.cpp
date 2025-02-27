@@ -89,7 +89,7 @@ load_windows(Args &args,
              std::unordered_map<std::string, long long> &chr_sizes) {
   std::vector<Interval> windows;
 
-  if (args.windows_source == "basic") {
+  if (args.windows_source == "basic" || args.windows_source == "dense") {
     std::vector<std::pair<std::string, long long>> chr_sizes_vec(
         chr_sizes.begin(), chr_sizes.end());
     std::sort(chr_sizes_vec.begin(), chr_sizes_vec.end());
@@ -99,8 +99,16 @@ load_windows(Args &args,
       long long l = 0, r = args.windows_size;
       while (l < chr_size) {
         windows.push_back({chr_name, l, r});
-        l = r;
-        r = std::min(chr_size, r + args.windows_size);
+        if (args.windows_source == "basic") {
+          l = r;
+          r = std::min(chr_size, r + args.windows_size);
+        } else if (args.windows_source == "dense") {
+          l += args.windows_step;
+          r = std::min(chr_size, r + args.windows_step);
+        } else {
+          logger.error("If you see this, something went horribly wrong :D");
+          exit(1);
+        }
       }
     }
   } else if (args.windows_source == "file") {
