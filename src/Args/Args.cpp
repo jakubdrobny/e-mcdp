@@ -34,6 +34,13 @@ void Args::parse_args(int argc, char *argv[]) {
       } else {
         log_failed_to_parse_args(flag);
       }
+    } else if (flag == "--log") {
+      if (i + 1 < argc) {
+        log_file_path = argv[++i];
+        logger.info("Parse --log: " + log_file_path);
+      } else {
+        log_failed_to_parse_args(flag);
+      }
     } else if (flag == "--method") {
       if (i + 1 < argc) {
         method = argv[++i];
@@ -79,6 +86,7 @@ void Args::parse_args(int argc, char *argv[]) {
 
 void Args::debug_args() {
   logger.debug("output: " + output_file_path);
+  logger.debug("log: " + log_file_path);
   logger.debug("ref_intervals_file_path: " + ref_intervals_file_path);
   logger.debug("query_intervals_file_path: " + query_intervals_file_path);
   logger.debug("chr_size_file_path: " + chr_size_file_path);

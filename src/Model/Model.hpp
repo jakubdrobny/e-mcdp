@@ -22,7 +22,6 @@ public:
         std::string method);
 
   long double eval_pvalue(long long overlap_count);
-  long long eval_sf();
 
   static std::vector<long double>
   eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
@@ -40,7 +39,7 @@ public:
       const std::vector<std::vector<long double>> &T,
       const std::vector<std::vector<long double>> &D);
 
-private:
+protected:
   static std::vector<Interval>
   select_intervals_by_chr_name(std::vector<Interval> &intervals,
                                size_t &intervals_idx, std::string chr_name);

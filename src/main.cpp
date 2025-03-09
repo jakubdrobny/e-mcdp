@@ -2,6 +2,8 @@
 #include "Helpers/Helpers.hpp"
 #include "Logger/Logger.hpp"
 #include "Model/Model.hpp"
+#include "Model/WindowModel.hpp"
+#include "Output/Output.hpp"
 #include "Timer/Timer.hpp"
 
 #include <chrono>
@@ -26,8 +28,10 @@ int main(int argc, char *argv[]) {
   args.debug_args();
   logger.info("Further logs will be in the file specified by the --o flag.");
 
-  if (args.output_file_path != "")
-    logger = Logger(args.output_file_path);
+  if (args.log_file_path != "")
+    logger = Logger(args.log_file_path);
+
+  Output output(args.output_file_path);
 
   logger.info("Loading reference interval set from: " +
               args.ref_intervals_file_path);
@@ -73,15 +77,25 @@ int main(int argc, char *argv[]) {
     // ideme pocitat pre okna
     logger.info("Loading window sizes...");
     std::vector<Interval> windows = load_windows(args, chr_sizes);
+    long long raw_window_count = windows.size();
     windows = filter_intervals_by_chr_name(windows, chr_names);
     windows = remove_empty_intervals(windows);
-    std::sort(windows.begin(), windows.end());
 
-    std::sort(ref_intervals.begin(), ref_intervals.end());
-    std::sort(query_intervals.begin(), query_intervals.end());
+    logger.info("Number of windows: " + std::to_string(windows.size()) + " (" +
+                std::to_string(raw_window_count) + " before merging)");
 
-    for (size_t windows_idx = 0, ref_idx = 0, query_idx = 0;
-         windows_idx < windows.size(); windows_idx++) {
+    WindowModel model(windows, ref_intervals, query_intervals, chr_sizes);
+    std::vector<WindowResult> results = model.run();
+
+    output.print("chr_name\tbegin\tend\toverlap_count\tp-value\t");
+    for (WindowResult result : results) {
+      long double p_value = calculate_joint_pvalue({result.get_probs()},
+                                                   result.get_overlap_count());
+      Interval window = result.get_window();
+      output.print(window.chr_name + "\t" + std::to_string(window.begin) +
+                   "\t" + std::to_string(window.end) + "\t" +
+                   std::to_string(overlap_count) + "\t" +
+                   std::to_string(p_value));
     }
   } else {
     // ideme pocitat pre cely genom spolu

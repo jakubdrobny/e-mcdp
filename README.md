@@ -4,7 +4,7 @@ A tool built on top of mc-overlaps [1] (mcdp2 [2] predecessor), allowing for col
 
 ## How to use this?
 
-### Basic data set
+#### Basic data set
 
 ```bash
 make clean && make run_sample # to run the basic algorithm on basic data set
@@ -16,12 +16,10 @@ make clean && make run_sample # to run the basic algorithm on basic data set
 make clean && make run_simple_pvalue REF_PATH=data/02-synth-data/g24_8.ref.tsv QUERY_PATH=data/02-synth-data/g24_8.query.tsv CHR_SIZES_PATH=data/02-synth-data/g24_sizes.tsv OUTPUT_PATH=data/output/02-synth-data-g24_8.txt
 ```
 
-Logs will be in the `data/output` directory.
+Logs will be in the `data/logs` directory. Output will be in the `data/output` directory.
 
 ### TODO
 
-- add `--windows.source=file|basic`, `--windows.path=<path_to_file_with_windows_definitions>` and `--windows.size=<used with basic flag, will create consecutive windows of this size, long long int>` flags
-- implement solving for set of windows, each window separately
 - figure out a way to implement merge two consecutive P_DP tables, implement it into a function (possibly can be done with `joint_logprobs`, but not sure, is next talking point)
 
 > [1] Askar Gafurov, Broňa Brejová, Paul Medvedev,

@@ -98,4 +98,8 @@ load_windows(Args &args, std::unordered_map<std::string, long long> &chr_sizes);
 std::vector<long double>
 get_stationary_distribution(const std::vector<std::vector<long double>> &mat);
 
+std::vector<std::vector<Interval>>
+get_windows_intervals(const std::vector<Interval> &windows,
+                      const std::vector<Interval> &intervals);
+
 #endif
