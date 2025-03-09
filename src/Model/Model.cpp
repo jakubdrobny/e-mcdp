@@ -210,6 +210,14 @@ Model::eval_probs_single_chr_direct_new_windows(
     return {{{0.}, {0.}}, {{0.}, {0.}}};
 
   int m = ref_intervals.size();
+  if (ref_intervals[0].begin == window_start) {
+    logger.warn("First reference interval starts with zero, changing to one!");
+    ref_intervals[0].begin++;
+    if (ref_intervals[0].end - ref_intervals[0].begin == 0) {
+      logger.warn("First reference interval has length 0, removing it!");
+      ref_intervals.erase(ref_intervals.begin());
+    }
+  }
 
   std::vector<Interval> ref_intervals_augmented;
   ref_intervals_augmented.push_back(
