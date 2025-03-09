@@ -32,6 +32,13 @@ public:
   eval_probs_single_chr_direct_eigen(std::vector<Interval> ref_intervals,
                                      std::vector<Interval> query_intervals,
                                      long long chr_size);
+  static std::vector<std::vector<std::vector<long double>>>
+  eval_probs_single_chr_direct_new_windows(
+      std::vector<Interval> ref_intervals,
+      std::vector<Interval> query_intervals, long long chr_size,
+      long long window_start, long long window_end,
+      const std::vector<std::vector<long double>> &T,
+      const std::vector<std::vector<long double>> &D);
 
 private:
   static std::vector<Interval>
