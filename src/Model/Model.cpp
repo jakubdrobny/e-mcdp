@@ -307,8 +307,9 @@ Model::eval_probs_single_chr_direct_new_windows(
       }
 
       std::vector<long double> cur_probs(m + 1);
-      for (int k = 0; k <= m; k++)
+      for (int k = 0; k <= m; k++) {
         cur_probs[k] = log(last_col[k][0] + last_col[k][1]);
+      }
       probs[start_state][end_state] = cur_probs;
     }
   }
