@@ -95,4 +95,7 @@ std::string to_string(const long double &val);
 std::vector<Interval>
 load_windows(Args &args, std::unordered_map<std::string, long long> &chr_sizes);
 
+std::vector<long double>
+get_stationary_distribution(const std::vector<std::vector<long double>> &mat);
+
 #endif

@@ -1,7 +1,6 @@
 #include "Model.hpp"
 #include "../Logger/Logger.hpp"
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <omp.h>
 
@@ -105,6 +104,11 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
                                                   std::vector<long double>(2)),
       last_col(m + 1, std::vector<long double>(2));
   prev_line[0][0] = 1;
+  // turned off for now
+  // std::vector<long double> stationary_distribution =
+  // get_stationary_distribution(T);
+  // prev_line[0][0] = stationary_distribution[0];
+  // prev_line[0][1] = stationary_distribution[1];
 
   // calculate zero-th row in separate way
   for (int j = 1; j <= m; j++) {

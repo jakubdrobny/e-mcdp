@@ -643,3 +643,29 @@ std::string to_string(const long double &val) {
   oss << std::fixed << std::setprecision(30) << val;
   return oss.str();
 }
+
+// expects transition matrix 2x2
+std::vector<long double>
+get_stationary_distribution(const std::vector<std::vector<long double>> &mat) {
+  if (mat.size() != 2 || mat[0].size() != 2 || mat[1].size() != 2) {
+    logger.error("Invalid transition matrix dimensions. Can't calculate "
+                 "stationary distribution.");
+    exit(1);
+  }
+
+  // b = mat[0][1], a = 1 - b, c = mat[1][0], d = 1 - c
+  // ax + cy = x and bx + dy = y and pi_0 + pi_1 = 1 should hold
+  // solving for pi_0 and pi_1 we get:
+  // we can derive that pi_0 = c/(b+c) and pi_1 = b/(b+c)
+  long double b = mat[0][1], c = mat[1][0];
+  long double denom = b + c;
+
+  // is not irreducible
+  if (std::abs(denom) < 1e-9) {
+    logger.error(
+        "Can't calculate stationary distribution. P[0][1] or P[1][0] are 0.");
+    exit(1);
+  }
+
+  return {c / denom, b / denom};
+}

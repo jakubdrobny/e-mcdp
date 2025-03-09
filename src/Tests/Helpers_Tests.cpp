@@ -1,5 +1,7 @@
 #include "../Helpers/Helpers.hpp"
 #include "../Interval/Interval.hpp"
+#include <csignal>
+#include <gtest/gtest-death-test.h>
 #include <gtest/gtest.h>
 
 TEST(MergeNonDisjointIntervalsTest, EmptyVector) {
@@ -37,4 +39,43 @@ TEST(MergeNonDisjointIntervalsTest, MixedChromosomes) {
   std::vector<Interval> intervals = {{"chr1", 1, 5}, {"chr2", 1, 5}};
   std::vector<Interval> expected = {{"chr1", 1, 5}, {"chr2", 1, 5}};
   EXPECT_EQ(merge_non_disjoint_intervals(intervals), expected);
+}
+
+TEST(GetStationaryDistributionTest, StandardCase) {
+  std::vector<std::vector<long double>> P = {{0.7L, 0.3L}, {0.2L, 0.8L}};
+  auto pi = get_stationary_distribution(P);
+  EXPECT_NEAR(pi[0], 0.4L, 1e-10L);
+  EXPECT_NEAR(pi[1], 0.6L, 1e-10L);
+}
+
+TEST(GetStationaryDistributionTest, AbsorbingState0) {
+  std::vector<std::vector<long double>> P = {{1.0L, 0.0L}, {0.2L, 0.8L}};
+  auto pi = get_stationary_distribution(P);
+  EXPECT_NEAR(pi[0], 1.0L, 1e-10L);
+  EXPECT_NEAR(pi[1], 0.0L, 1e-10L);
+}
+
+TEST(GetStationaryDistributionTest, AbsorbingState1) {
+  std::vector<std::vector<long double>> P = {{0.5L, 0.5L}, {0.0L, 1.0L}};
+  auto pi = get_stationary_distribution(P);
+  EXPECT_NEAR(pi[0], 0.0L, 1e-10L);
+  EXPECT_NEAR(pi[1], 1.0L, 1e-10L);
+}
+
+TEST(GetStationaryDistributionTest, NotIrreducible) {
+  std::vector<std::vector<long double>> P = {{1.0L, 0.0L}, {0.0L, 1.0L}};
+  EXPECT_EXIT(get_stationary_distribution(P), testing::ExitedWithCode(1), "");
+}
+
+TEST(GetStationaryDistributionTest, InvalidMatrixSize) {
+  std::vector<std::vector<long double>> P = {
+      {0.6L, 0.3L, 0.1L}, {0.2L, 0.5L, 0.3L}, {0.1L, 0.4L, 0.5L}};
+  EXPECT_EXIT(get_stationary_distribution(P), testing::ExitedWithCode(1), "");
+}
+
+TEST(GetStationaryDistributionTest, SumsToOne) {
+  std::vector<std::vector<long double>> P = {{0.9L, 0.1L}, {0.4L, 0.6L}};
+  auto pi = get_stationary_distribution(P);
+  long double sum = pi[0] + pi[1];
+  EXPECT_NEAR(sum, 1.0L, 1e-10L);
 }
