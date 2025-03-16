@@ -1,4 +1,4 @@
-chr_name	begin	end	overlap_count	p-value	
+chr_name	begin	end	overlap_count	p-value
 chr1	0	10000000	54	1.000000
 chr1	10000000	20000000	54	1.000000
 chr1	20000000	30000000	54	1.000000

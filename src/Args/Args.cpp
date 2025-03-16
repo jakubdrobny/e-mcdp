@@ -91,6 +91,10 @@ void Args::debug_args() {
   logger.debug("query_intervals_file_path: " + query_intervals_file_path);
   logger.debug("chr_size_file_path: " + chr_size_file_path);
   logger.debug("method: " + method);
+  logger.debug("windows.source:" + windows_source);
+  logger.debug("windows.path: " + windows_path);
+  logger.debug("windows.size:" + std::to_string(windows_size));
+  logger.debug("windows.step: " + std::to_string(windows_step));
 }
 
 void Args::log_failed_to_parse_args(const std::string &flag) {

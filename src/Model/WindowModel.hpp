@@ -20,8 +20,7 @@ public:
 
   std::vector<WindowResult> run();
 
-private:
-  std::vector<std::vector<Interval>>
+  static std::vector<std::vector<Interval>>
   get_windows_intervals(const std::vector<Interval> &windows,
                         const std::vector<Interval> &intervals);
 };

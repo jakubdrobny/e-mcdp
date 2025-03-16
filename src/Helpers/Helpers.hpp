@@ -34,6 +34,9 @@ std::vector<Interval> remove_empty_intervals(std::vector<Interval> intervals);
 long long count_overlaps(std::vector<Interval> ref_intervals,
                          std::vector<Interval> query_intervals);
 
+long long count_overlaps_single_chr(std::vector<Interval> ref_intervals,
+                                    std::vector<Interval> query_intervals);
+
 std::vector<std::string>
 get_sorted_chr_names_from_intervals(std::vector<Interval> intervals);
 

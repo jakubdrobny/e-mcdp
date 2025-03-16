@@ -1,5 +1,6 @@
 #include "../Helpers/Helpers.hpp"
 #include "../Interval/Interval.hpp"
+#include "../Model/WindowModel.hpp"
 #include <csignal>
 #include <gtest/gtest-death-test.h>
 #include <gtest/gtest.h>
@@ -78,4 +79,63 @@ TEST(GetStationaryDistributionTest, SumsToOne) {
   auto pi = get_stationary_distribution(P);
   long double sum = pi[0] + pi[1];
   EXPECT_NEAR(sum, 1.0L, 1e-10L);
+}
+
+TEST(GetWindowsIntervalsTest, NonOverlappingWindows) {
+  std::vector<Interval> intervals = {{"", 1, 10}, {"", 20, 30}};
+  std::vector<Interval> windows = {{"", 0, 15}, {"", 15, 50}};
+  auto windows_intervals =
+      WindowModel::get_windows_intervals(windows, intervals);
+  std::vector<std::vector<Interval>> expected = {{{"", 1, 10}}, {{"", 20, 30}}};
+  EXPECT_EQ(expected, windows_intervals);
+}
+
+TEST(GetWindowsIntervalsTest, OverlappingWindows) {
+  std::vector<Interval> intervals = {{"", 10, 12}, {"", 20, 30}};
+  std::vector<Interval> windows = {{"", 0, 15}, {"", 5, 50}};
+  auto windows_intervals =
+      WindowModel::get_windows_intervals(windows, intervals);
+  std::vector<std::vector<Interval>> expected = {{{"", 10, 12}},
+                                                 {{"", 10, 12}, {"", 20, 30}}};
+  EXPECT_EQ(expected, windows_intervals);
+}
+
+TEST(GetWindowsIntervalsTest, SlicesIntervalsCorrectly) {
+  std::vector<Interval> intervals = {{"", 10, 12}, {"", 20, 30}};
+  std::vector<Interval> windows = {{"", 0, 11}, {"", 5, 25}};
+  auto windows_intervals =
+      WindowModel::get_windows_intervals(windows, intervals);
+  std::vector<std::vector<Interval>> expected = {{{"", 10, 11}},
+                                                 {{"", 10, 12}, {"", 20, 25}}};
+  EXPECT_EQ(expected, windows_intervals);
+}
+
+TEST(GetWindowsIntervalsTest, EmptySlicedIntervalsAreExcluded) {
+  std::vector<Interval> intervals = {{"", 10, 12}, {"", 20, 30}};
+  std::vector<Interval> windows = {{"", 0, 10}, {"", 30, 50}};
+  auto windows_intervals =
+      WindowModel::get_windows_intervals(windows, intervals);
+  std::vector<std::vector<Interval>> expected = {{}, {}};
+  EXPECT_EQ(expected, windows_intervals);
+}
+
+TEST(GetWindowsIntervalsTest, FailOnDecreasingWindowCoordinates) {
+  std::vector<Interval> intervals = {{"", 0, 1}};
+  std::vector<Interval> windows = {{"", 5, 10}, {"", 3, 50}};
+  EXPECT_EXIT(WindowModel::get_windows_intervals(windows, intervals),
+              testing::ExitedWithCode(1), "");
+}
+
+TEST(GetWindowsIntervalsTest, FailOnOverlappingIntervals) {
+  std::vector<Interval> intervals = {{"", 0, 10}, {"", 5, 15}};
+  std::vector<Interval> windows = {{"", 5, 10}, {"", 3, 50}};
+  EXPECT_EXIT(WindowModel::get_windows_intervals(windows, intervals),
+              testing::ExitedWithCode(1), "");
+}
+
+TEST(GetWindowsIntervalsTest, NoIntervalsInWindow) {
+  std::vector<Interval> intervals = {{"", 10, 20}};
+  std::vector<Interval> windows = {{"", 20, 30}};
+  EXPECT_EQ(WindowModel::get_windows_intervals(windows, intervals),
+            std::vector<std::vector<Interval>>{{}});
 }

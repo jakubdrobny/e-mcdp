@@ -12,16 +12,21 @@
 #include <unordered_map>
 #include <vector>
 
+#define RUN_TESTS 0
+
 Logger logger;
 
 int main(int argc, char *argv[]) {
-  logger = Logger();
-
-  ::testing::InitGoogleTest();
-  if (RUN_ALL_TESTS()) {
-    logger.error("Some tests have failed. Please see the log above.");
-    return 1;
+  if (RUN_TESTS) {
+    ::testing::InitGoogleTest();
+    if (RUN_ALL_TESTS()) {
+      logger.error("Some tests have failed. Please see the log above.");
+      return 1;
+    }
+    return 0;
   }
+
+  logger = Logger();
 
   Args args(logger);
   args.parse_args(argc, argv);
@@ -87,7 +92,7 @@ int main(int argc, char *argv[]) {
     WindowModel model(windows, ref_intervals, query_intervals, chr_sizes);
     std::vector<WindowResult> results = model.run();
 
-    output.print("chr_name\tbegin\tend\toverlap_count\tp-value\t\n");
+    output.print("chr_name\tbegin\tend\toverlap_count\tp-value\n");
     for (WindowResult result : results) {
       long double p_value = calculate_joint_pvalue({result.get_probs()},
                                                    result.get_overlap_count());
