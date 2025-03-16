@@ -48,7 +48,7 @@ make run_simple_pvalue REF_PATH=data/02-synth-data/g24_8.ref.tsv QUERY_PATH=data
 
 ### TODO
 
-- check why windows output has a bunch of lines without a chromosome name
+- FIX: WindowModel::run does not run properly on windows, overlap count is equal to the entire genome overlap count instead of the correct overlap for findow
 - make `CMakeLists.txt` file so everyone can use it easily
 - write a proper documentation on how to use it will all flags
 - add --h/--help flag and print help info for all flags
