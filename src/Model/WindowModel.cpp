@@ -109,7 +109,7 @@ std::vector<WindowResult> WindowModel::run() {
         select_intervals_by_chr_name(query_intervals, query_idx, chr_name);
   }
 
-  std::vector<WindowResult> probs_by_window(windows.size());
+  std::vector<WindowResult> probs_by_window;
 
   // turn off for debugging
   // #pragma omp parallel for
