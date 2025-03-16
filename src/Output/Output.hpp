@@ -12,7 +12,7 @@ public:
 
 private:
   std::ofstream out;
-  bool out_to_file;
+  bool out_to_file = false;
   std::string filename;
 };
 

@@ -528,7 +528,8 @@ joint_logprobs(const std::vector<std::vector<long double>> &probs_by_chr) {
 long double calculate_joint_pvalue(
     const std::vector<std::vector<long double>> &probs_by_chr,
     long long overlap_count) {
-  if (overlap_count < 0)
+  if (overlap_count < 0 || probs_by_chr.empty() ||
+      (probs_by_chr.size() == 1 && probs_by_chr[0].empty()))
     return 1;
 
   std::vector<long double> logprobs = joint_logprobs(probs_by_chr);

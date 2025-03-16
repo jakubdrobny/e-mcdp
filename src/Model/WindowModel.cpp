@@ -84,9 +84,14 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
 }
 
 std::vector<WindowResult> WindowModel::run() {
+  logger.info("Running WindowModel...");
+  logger.info("Sorting intervals and windows...");
+
   std::sort(ref_intervals.begin(), ref_intervals.end());
   std::sort(query_intervals.begin(), query_intervals.end());
   std::sort(windows.begin(), windows.end());
+
+  logger.info("Grouping intervals and windows by chromosome...");
 
   std::vector<std::vector<Interval>> windows_by_chr(chr_sizes.size()),
       ref_intervals_by_chr(chr_sizes.size()),
@@ -106,9 +111,14 @@ std::vector<WindowResult> WindowModel::run() {
 
   std::vector<WindowResult> probs_by_window(windows.size());
 
-#pragma omp parallel for
+  // turn off for debugging
+  // #pragma omp parallel for
   for (size_t chr_sizes_idx = 0; chr_sizes_idx < chr_sizes.size();
        chr_sizes_idx++) {
+    std::string chr_name = chr_sizes[chr_sizes_idx].first;
+    logger.info("Loading windows and their intervals for chromosome: " +
+                chr_name);
+
     long long chr_size = chr_sizes[chr_sizes_idx].second;
 
     std::vector<std::vector<Interval>> ref_intervals_by_window =
@@ -118,6 +128,7 @@ std::vector<WindowResult> WindowModel::run() {
         get_windows_intervals(windows_by_chr[chr_sizes_idx],
                               query_intervals_by_chr[chr_sizes_idx]);
 
+    logger.info("Calculating probs for windows in chromsome: " + chr_name);
     // TODO: can this work?
     // #pragma omp parallel for
     for (size_t window_idx = 0;

@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -Wall -O2 -std=c++20 -fopenmp
+CXXFLAGS := -Wall -O3 -std=c++20 -fopenmp
 
 SOURCES := $(wildcard src/*.cpp) $(wildcard src/**/*.cpp)
 BIN := bin/e-mcdp
@@ -27,8 +27,11 @@ run_simple_pvalue: clean $(BIN)
 run_simple_pvalue_console: clean $(BIN) 
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH)
 
-run_sample_basic_windows_1000000_console: clean $(BIN)
-	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --windows.source basic --windows.size 1000000
+run_sample_basic_windows_console: clean $(BIN)
+	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --windows.source basic --windows.size $(WINDOWS_SIZE)
+
+run_sample_basic_windows: clean $(BIN)
+	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --windows.source basic --windows.size $(WINDOWS_SIZE) --log data/logs/01-sample-data-hirt-windows.txt --o data/output/01-sample-data-hirt-windows.tsv
 
 run_sample_console: clean $(BIN)
 	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv

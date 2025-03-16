@@ -82,12 +82,12 @@ int main(int argc, char *argv[]) {
     windows = remove_empty_intervals(windows);
 
     logger.info("Number of windows: " + std::to_string(windows.size()) + " (" +
-                std::to_string(raw_window_count) + " before merging)");
+                std::to_string(raw_window_count) + " before preprocessing)");
 
     WindowModel model(windows, ref_intervals, query_intervals, chr_sizes);
     std::vector<WindowResult> results = model.run();
 
-    output.print("chr_name\tbegin\tend\toverlap_count\tp-value\t");
+    output.print("chr_name\tbegin\tend\toverlap_count\tp-value\t\n");
     for (WindowResult result : results) {
       long double p_value = calculate_joint_pvalue({result.get_probs()},
                                                    result.get_overlap_count());
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
       output.print(window.chr_name + "\t" + std::to_string(window.begin) +
                    "\t" + std::to_string(window.end) + "\t" +
                    std::to_string(overlap_count) + "\t" +
-                   std::to_string(p_value));
+                   std::to_string(p_value) + "\n");
     }
   } else {
     // ideme pocitat pre cely genom spolu

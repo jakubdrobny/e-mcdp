@@ -5,7 +5,7 @@
 #include <string>
 
 Output::Output(const std::string &filename) : filename(filename) {
-  if (filename != "") {
+  if (!filename.empty()) {
     out_to_file = true;
     out = std::ofstream(filename);
     if (!out) {
