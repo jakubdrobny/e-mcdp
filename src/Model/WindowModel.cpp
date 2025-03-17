@@ -1,6 +1,7 @@
 #include "WindowModel.hpp"
 #include "../WindowResult/WindowResult.hpp"
 #include <algorithm>
+#include <iostream>
 
 WindowModel::WindowModel() {}
 WindowModel::WindowModel(std::vector<Interval> windows,
@@ -123,10 +124,10 @@ std::vector<WindowResult> WindowModel::run() {
           count_overlaps_single_chr(ref_intervals_by_window[window_idx],
                                     query_intervals_by_window[window_idx]);
       std::vector<long double> probs = eval_probs_single_chr_direct(
-          ref_intervals_by_chr[chr_sizes_idx],
-          query_intervals_by_chr[chr_sizes_idx], chr_size);
-      probs_by_window.push_back(WindowResult(
-          windows_by_chr[chr_sizes_idx][window_idx], overlap_count, probs));
+          ref_intervals_by_window[window_idx],
+          query_intervals_by_window[window_idx], chr_size);
+      Interval cur_window = windows_by_chr[chr_sizes_idx][window_idx];
+      probs_by_window.push_back(WindowResult(cur_window, overlap_count, probs));
     }
   }
 

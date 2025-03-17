@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
       Interval window = result.get_window();
       output.print(window.chr_name + "\t" + std::to_string(window.begin) +
                    "\t" + std::to_string(window.end) + "\t" +
-                   std::to_string(overlap_count) + "\t" +
+                   std::to_string(result.get_overlap_count()) + "\t" +
                    std::to_string(p_value) + "\n");
     }
   } else {
