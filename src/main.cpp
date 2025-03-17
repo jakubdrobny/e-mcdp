@@ -17,6 +17,8 @@
 Logger logger;
 
 int main(int argc, char *argv[]) {
+  Timer timer;
+
   if (RUN_TESTS) {
     ::testing::InitGoogleTest();
     if (RUN_ALL_TESTS()) {
@@ -102,12 +104,15 @@ int main(int argc, char *argv[]) {
                    std::to_string(result.get_overlap_count()) + "\t" +
                    std::to_string(p_value) + "\n");
     }
+
+    long double duration = timer.elapsed<std::chrono::milliseconds>();
+    logger.debug("Time taken to calculate p-value: " +
+                 std::to_string(duration) + " milliseconds\n");
   } else {
     // ideme pocitat pre cely genom spolu
     Model model(ref_intervals, query_intervals, chr_sizes, args.method);
 
     // measure time from here, previous parts are just tests and i/o
-    Timer timer;
     long double p_value = model.eval_pvalue(overlap_count);
     long double duration = timer.elapsed<std::chrono::milliseconds>();
 
