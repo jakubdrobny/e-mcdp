@@ -1,4 +1,5 @@
 #include "Args.hpp"
+#include <iostream>
 #include <vector>
 
 Args::Args(Logger &logger) : logger(logger) {}
@@ -65,14 +66,14 @@ void Args::parse_args(int argc, char *argv[]) {
     } else if (flag == "--windows.size") {
       if (i + 1 < argc) {
         windows_size = std::stoll(argv[++i]);
-        logger.info("Parse --windows.size: " + std::to_string(windows_size));
+        logger.info("Parsed --windows.size: " + std::to_string(windows_size));
       } else {
         log_failed_to_parse_args(flag);
       }
     } else if (flag == "--windows.step") {
       if (i + 1 < argc) {
         windows_step = std::stoll(argv[++i]);
-        logger.info("Parse --windows.step: " + std::to_string(windows_step));
+        logger.info("Parsed --windows.step: " + std::to_string(windows_step));
       } else {
         log_failed_to_parse_args(flag);
       }

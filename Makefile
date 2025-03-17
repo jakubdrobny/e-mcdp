@@ -58,9 +58,9 @@ run_sample_basic_windows_console: clean $(BIN)
 	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --windows.source basic --windows.size $(WINDOWS_SIZE)
 
 run_sample_dense_windows: clean $(BIN)
-	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --windows.source dense --windows.size $(WINDOWS_SIZE) --windows.step $(WINDOW_STEP) --log data/logs/01-sample-data-hirt-windows.txt --o data/output/01-sample-data-hirt-windows.tsv
+	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --windows.source dense --windows.size $(WINDOWS_SIZE) --windows.step $(WINDOWS_STEP) --log data/logs/01-sample-data-hirt-windows.txt --o data/output/01-sample-data-hirt-windows.tsv
 
 run_sample_dense_windows_console: clean $(BIN)
-	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --windows.source dense --windows.size $(WINDOWS_SIZE) --windows.step $(WINDOW_STEP)
+	@./bin/e-mcdp --r data/01-sample-data/tcga-ref-intervals.tsv --q data/01-sample-data/hirt-query-intervals.tsv --chs data/01-sample-data/chr-sizes.tsv --windows.source dense --windows.size $(WINDOWS_SIZE) --windows.step $(WINDOWS_STEP)
 
 .PHONY: all clean install test run_sample run_sample_console run_simple_pvalue run_simple_pvalue_console run_basic_windows run_basic_windows_console run_dense_windows run_dense_windows_console run_windows_from_file run_windows_from_file_console run_sample_basic_windows run_sample_basic_windows_console run_sample_dense_windows run_sample_dense_windows_console

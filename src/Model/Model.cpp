@@ -200,6 +200,8 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
   return probs;
 }
 
+template <class T> using SectionProbs = std::vector<std::vector<T>>;
+
 std::vector<std::vector<std::vector<long double>>>
 Model::eval_probs_single_chr_direct_new_windows(
     std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals,
@@ -210,15 +212,6 @@ Model::eval_probs_single_chr_direct_new_windows(
     return {{{0.}, {0.}}, {{0.}, {0.}}};
 
   int m = ref_intervals.size();
-  if (ref_intervals[0].begin == window_start) {
-    logger.warn("First reference interval starts with zero, changing to one!");
-    ref_intervals[0].begin++;
-    if (ref_intervals[0].end - ref_intervals[0].begin == 0) {
-      logger.warn("First reference interval has length 0, removing it!");
-      ref_intervals.erase(ref_intervals.begin());
-    }
-  }
-
   std::vector<Interval> ref_intervals_augmented;
   ref_intervals_augmented.push_back(
       Interval(ref_intervals[0].chr_name, std::numeric_limits<long long>::min(),
@@ -228,21 +221,20 @@ Model::eval_probs_single_chr_direct_new_windows(
       Interval(ref_intervals[0].chr_name, window_end + 1,
                std::numeric_limits<long long>::max()));
 
-  std::vector<std::vector<std::vector<long double>>> probs(
+  SectionProbs<std::vector<long double>> probs(
       2, std::vector<std::vector<long double>>(2));
   for (int start_state : {0, 1}) {
     for (int end_state : {0, 1}) {
       std::vector<std::vector<long double>> prev_line(
           m + 1, std::vector<long double>(2)),
           last_col(m + 1, std::vector<long double>(2));
-      prev_line[start_state][start_state] = 1;
+      prev_line[0][start_state] = 1;
+      prev_line[1][start_state] = 1;
 
       // calculate zero-th row in separate way
       for (int j = 1; j <= m; j++) {
         long long gap = ref_intervals_augmented[j].begin -
                         ref_intervals_augmented[j - 1].end;
-        if (j == 1)
-          gap--;
         if (gap < 0) {
           logger.error("Gap should be non-negative.");
           exit(1);
@@ -274,11 +266,9 @@ Model::eval_probs_single_chr_direct_new_windows(
                        std::to_string(m) + " rows of DP table...");
         }
 
-        for (int j = k; j < m + 1; j++) {
+        for (int j = k; j <= m; j++) {
           long long gap = ref_intervals_augmented[j].begin -
                           ref_intervals_augmented[j - 1].end;
-          if (j == 1)
-            gap--;
           if (gap < 0) {
             logger.error("Gap should be non-negative.");
             exit(1);
@@ -316,7 +306,12 @@ Model::eval_probs_single_chr_direct_new_windows(
 
       std::vector<long double> cur_probs(m + 1);
       for (int k = 0; k <= m; k++) {
-        cur_probs[k] = log(last_col[k][0] + last_col[k][1]);
+        // length of gap from end of last interval to end of window
+        long long trailing_gap = window_end - ref_intervals_augmented[m].end;
+        std::vector<long double> actual_last_col = matrix_to_vector(
+            matrix_multiply(vector_to_2d_matrix(last_col[k]),
+                            binary_exponentiation(T, trailing_gap)));
+        cur_probs[k] = actual_last_col[end_state];
       }
       probs[start_state][end_state] = cur_probs;
     }
