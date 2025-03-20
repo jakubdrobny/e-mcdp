@@ -134,6 +134,8 @@ TEST(GetWindowsIntervalsTest, NoIntervalsInWindow) {
 }
 
 TEST(GetWindowsIntervalsTest, NestedWindow) {
-  std::vector<Interval> intervals = {{"", 0, 10}};
-  std::vector<Interval> windows = {{"", 0, 10}};
+  std::vector<Interval> intervals = {{"", 7, 12}};
+  std::vector<Interval> windows = {{"", 5, 10}, {"", 0, 20}};
+  std::vector<std::vector<Interval>> expected = {{{"", 7, 10}}, {{"", 7, 12}}};
+  EXPECT_EQ(WindowModel::get_windows_intervals(windows, intervals), expected);
 }

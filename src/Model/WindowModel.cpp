@@ -2,7 +2,6 @@
 #include "../WindowResult/WindowResult.hpp"
 #include <algorithm>
 #include <iostream>
-#include <set>
 
 WindowModel::WindowModel() {}
 WindowModel::WindowModel(std::vector<Interval> windows,
@@ -25,84 +24,28 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
     return results;
   }
 
-  // sorted by end increasing primarily and begin secondarily
   std::vector<Interval> sortedIntervals = intervals;
-  std::sort(sortedIntervals.begin(), sortedIntervals.end());
-
-  for (size_t idx = 1; idx < sortedIntervals.size(); idx++) {
-    if (sortedIntervals[idx].begin < sortedIntervals[idx - 1].end) {
-      logger.error("Intervals split into windows need to be non-overlapping.");
+  for (size_t idx = 0; idx + 1 < sortedIntervals.size(); idx++) {
+    if (sortedIntervals[idx].end <= sortedIntervals[idx + 1].begin) {
+      logger.error(
+          "intervals must be non-overlapping for splitting into windows");
       exit(1);
     }
   }
 
-  using WindowEntry = std::pair<Interval, int>;
-  std::vector<WindowEntry> sortedWindowsByBegin(windows.size());
-  std::vector<WindowEntry> sortedWindowsByEnd(windows.size());
   for (size_t windows_idx = 0; windows_idx < windows.size(); windows_idx++) {
-    sortedWindowsByBegin[windows_idx] = {windows[windows_idx], windows_idx};
-    sortedWindowsByEnd[windows_idx] = {windows[windows_idx], windows_idx};
-  }
-
-  std::sort(sortedWindowsByBegin.begin(), sortedWindowsByBegin.end());
-  std::sort(sortedWindowsByEnd.begin(), sortedWindowsByEnd.end(),
-            [](const WindowEntry &e1, const WindowEntry &e2) {
-              Interval i1 = e1.first, i2 = e2.first;
-              if (i1.end == i2.end) {
-                if (i1.begin == i2.begin)
-                  return i1.chr_name < i2.chr_name;
-                return i1.begin < i2.begin;
-              }
-              return i1.end < i2.end;
-            });
-
-  std::vector<std::set<size_t>> resultsSet(windows.size());
-  for (size_t intervals_idx = 0; intervals_idx < sortedIntervals.size();
-       intervals_idx++) {
-    Interval interval = sortedIntervals[intervals_idx];
-    std::cout << "interval: " << interval << "\n";
-    auto find_intervals = [interval, intervals_idx, &resultsSet](
-                              const std::vector<WindowEntry> &sortedWindows) {
-      size_t lb =
-          std::lower_bound(sortedWindows.begin(), sortedWindows.end(), interval,
-                           [](const WindowEntry &e1, const Interval &i2) {
-                             return e1.first.begin < i2.begin;
-                           }) -
-          sortedWindows.begin();
-      size_t ub =
-          std::lower_bound(sortedWindows.begin(), sortedWindows.end(), interval,
-                           [](const WindowEntry &e1, const Interval &i2) {
-                             return e1.first.begin < i2.end;
-                           }) -
-          sortedWindows.begin();
-      std::cout << "lb: " << lb << ", ub: " << ub << ", sortedWindows:";
-      for (WindowEntry _we : sortedWindows) {
-        std::cout << " " << _we.first;
-      }
-      std::cout << "\n";
-
-      for (size_t idx = lb; idx < ub; idx++) {
-        WindowEntry we = sortedWindows[idx];
-        Interval sliced_interval = interval, window = we.first;
-        sliced_interval.begin = std::max(sliced_interval.begin, window.begin);
-        sliced_interval.end = std::min(sliced_interval.end, window.end);
-        if (sliced_interval.end - sliced_interval.begin < 1)
-          continue;
-        resultsSet[we.second].insert(intervals_idx);
-      }
-    };
-
-    find_intervals(sortedWindowsByBegin);
-    find_intervals(sortedWindowsByEnd);
-  }
-
-  for (size_t idx = 0; idx < resultsSet.size(); idx++) {
-    std::cout << "window: " << windows[idx] << ":";
-    for (size_t intervals_idx : resultsSet[idx]) {
-      std::cout << " " << sortedIntervals[intervals_idx];
-      results[idx].push_back(sortedIntervals[intervals_idx]);
+    Interval window = windows[windows_idx];
+    for (Interval interval : intervals) {
+      if (interval.end <= window.begin || interval.begin >= window.begin)
+        continue;
+      std::cout << "window: " << window << ", interval: " << interval << "\n";
+      Interval sliced_interval = interval;
+      sliced_interval.begin = std::max(sliced_interval.begin, window.begin);
+      sliced_interval.end = std::min(sliced_interval.end, window.end);
+      if (sliced_interval.end - sliced_interval.begin < 1)
+        continue;
+      results[windows_idx].push_back(sliced_interval);
     }
-    std::cout << "\n";
   }
 
   return results;
