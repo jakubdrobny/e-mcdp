@@ -119,13 +119,6 @@ TEST(GetWindowsIntervalsTest, EmptySlicedIntervalsAreExcluded) {
   EXPECT_EQ(expected, windows_intervals);
 }
 
-TEST(GetWindowsIntervalsTest, FailOnDecreasingWindowCoordinates) {
-  std::vector<Interval> intervals = {{"", 0, 1}};
-  std::vector<Interval> windows = {{"", 5, 10}, {"", 3, 50}};
-  EXPECT_EXIT(WindowModel::get_windows_intervals(windows, intervals),
-              testing::ExitedWithCode(1), "");
-}
-
 TEST(GetWindowsIntervalsTest, FailOnOverlappingIntervals) {
   std::vector<Interval> intervals = {{"", 0, 10}, {"", 5, 15}};
   std::vector<Interval> windows = {{"", 5, 10}, {"", 3, 50}};
@@ -138,4 +131,9 @@ TEST(GetWindowsIntervalsTest, NoIntervalsInWindow) {
   std::vector<Interval> windows = {{"", 20, 30}};
   EXPECT_EQ(WindowModel::get_windows_intervals(windows, intervals),
             std::vector<std::vector<Interval>>{{}});
+}
+
+TEST(GetWindowsIntervalsTest, NestedWindow) {
+  std::vector<Interval> intervals = {{"", 0, 10}};
+  std::vector<Interval> windows = {{"", 0, 10}};
 }

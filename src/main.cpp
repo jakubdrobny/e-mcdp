@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-#define RUN_TESTS 0
+#define RUN_TESTS 1
 
 Logger logger;
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
                 std::to_string(raw_window_count) + " before preprocessing)");
 
     WindowModel model(windows, ref_intervals, query_intervals, chr_sizes,
-                      algorithm);
+                      args.algorithm);
     std::vector<WindowResult> results = model.run();
 
     output.print("chr_name\tbegin\tend\toverlap_count\tp-value\n");

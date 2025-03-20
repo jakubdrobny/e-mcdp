@@ -11,6 +11,12 @@ Interval::operator std::string() const {
          ")";
 }
 
+std::ostream &operator<<(std::ostream &os, const Interval &interval) {
+  os << interval.chr_name + ": [" + std::to_string(interval.begin) + ", " +
+            std::to_string(interval.end) + ")";
+  return os;
+}
+
 std::string interval_vector_to_string(std::vector<Interval> &intervals) {
   std::string result;
   for (size_t idx = 0; idx < intervals.size(); idx++) {

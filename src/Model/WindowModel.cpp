@@ -2,6 +2,7 @@
 #include "../WindowResult/WindowResult.hpp"
 #include <algorithm>
 #include <iostream>
+#include <set>
 
 WindowModel::WindowModel() {}
 WindowModel::WindowModel(std::vector<Interval> windows,
@@ -15,8 +16,7 @@ WindowModel::WindowModel(std::vector<Interval> windows,
   std::sort(chr_sizes.begin(), chr_sizes.end());
 }
 
-// requires the intervals be non-overlapping and windows have non-decreasing
-// starts and ends
+// requires the intervals be non-overlapping
 std::vector<std::vector<Interval>>
 WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
                                    const std::vector<Interval> &intervals) {
@@ -25,6 +25,7 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
     return results;
   }
 
+  // sorted by end increasing primarily and begin secondarily
   std::vector<Interval> sortedIntervals = intervals;
   std::sort(sortedIntervals.begin(), sortedIntervals.end());
 
@@ -35,36 +36,73 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
     }
   }
 
-  std::vector<Interval> sortedWindows = windows;
-  std::sort(sortedWindows.begin(), sortedWindows.end());
-
-  for (size_t idx = 1; idx < sortedWindows.size(); idx++) {
-    if (sortedWindows[idx].end < sortedWindows[idx - 1].end) {
-      logger.error("Windows need to have non-decreasing coordinates.");
-      exit(1);
-    }
+  using WindowEntry = std::pair<Interval, int>;
+  std::vector<WindowEntry> sortedWindowsByBegin(windows.size());
+  std::vector<WindowEntry> sortedWindowsByEnd(windows.size());
+  for (size_t windows_idx = 0; windows_idx < windows.size(); windows_idx++) {
+    sortedWindowsByBegin[windows_idx] = {windows[windows_idx], windows_idx};
+    sortedWindowsByEnd[windows_idx] = {windows[windows_idx], windows_idx};
   }
 
-  for (size_t windows_idx = 0, intervals_idx = 0;
-       windows_idx < sortedWindows.size(); windows_idx++) {
-    while (intervals_idx < sortedIntervals.size() &&
-           sortedIntervals[intervals_idx].end <= windows[windows_idx].begin)
-      intervals_idx++;
-    size_t r = intervals_idx;
+  std::sort(sortedWindowsByBegin.begin(), sortedWindowsByBegin.end());
+  std::sort(sortedWindowsByEnd.begin(), sortedWindowsByEnd.end(),
+            [](const WindowEntry &e1, const WindowEntry &e2) {
+              Interval i1 = e1.first, i2 = e2.first;
+              if (i1.end == i2.end) {
+                if (i1.begin == i2.begin)
+                  return i1.chr_name < i2.chr_name;
+                return i1.begin < i2.begin;
+              }
+              return i1.end < i2.end;
+            });
 
-    std::vector<Interval> cur_result;
-    while (r < sortedIntervals.size() &&
-           intervals[r].begin < windows[windows_idx].end) {
-      Interval sliced_interval = sortedIntervals[r++];
-      sliced_interval.begin =
-          std::max(sliced_interval.begin, windows[windows_idx].begin);
-      sliced_interval.end =
-          std::min(sliced_interval.end, windows[windows_idx].end);
-      if (sliced_interval.end - sliced_interval.begin < 1)
-        continue;
-      cur_result.push_back(sliced_interval);
+  std::vector<std::set<size_t>> resultsSet(windows.size());
+  for (size_t intervals_idx = 0; intervals_idx < sortedIntervals.size();
+       intervals_idx++) {
+    Interval interval = sortedIntervals[intervals_idx];
+    std::cout << "interval: " << interval << "\n";
+    auto find_intervals = [interval, intervals_idx, &resultsSet](
+                              const std::vector<WindowEntry> &sortedWindows) {
+      size_t lb =
+          std::lower_bound(sortedWindows.begin(), sortedWindows.end(), interval,
+                           [](const WindowEntry &e1, const Interval &i2) {
+                             return e1.first.begin < i2.begin;
+                           }) -
+          sortedWindows.begin();
+      size_t ub =
+          std::lower_bound(sortedWindows.begin(), sortedWindows.end(), interval,
+                           [](const WindowEntry &e1, const Interval &i2) {
+                             return e1.first.begin < i2.end;
+                           }) -
+          sortedWindows.begin();
+      std::cout << "lb: " << lb << ", ub: " << ub << ", sortedWindows:";
+      for (WindowEntry _we : sortedWindows) {
+        std::cout << " " << _we.first;
+      }
+      std::cout << "\n";
+
+      for (size_t idx = lb; idx < ub; idx++) {
+        WindowEntry we = sortedWindows[idx];
+        Interval sliced_interval = interval, window = we.first;
+        sliced_interval.begin = std::max(sliced_interval.begin, window.begin);
+        sliced_interval.end = std::min(sliced_interval.end, window.end);
+        if (sliced_interval.end - sliced_interval.begin < 1)
+          continue;
+        resultsSet[we.second].insert(intervals_idx);
+      }
+    };
+
+    find_intervals(sortedWindowsByBegin);
+    find_intervals(sortedWindowsByEnd);
+  }
+
+  for (size_t idx = 0; idx < resultsSet.size(); idx++) {
+    std::cout << "window: " << windows[idx] << ":";
+    for (size_t intervals_idx : resultsSet[idx]) {
+      std::cout << " " << sortedIntervals[intervals_idx];
+      results[idx].push_back(sortedIntervals[intervals_idx]);
     }
-    results[windows_idx] = cur_result;
+    std::cout << "\n";
   }
 
   return results;
