@@ -26,6 +26,12 @@ public:
   static std::vector<std::vector<Interval>>
   get_windows_intervals(const std::vector<Interval> &windows,
                         const std::vector<Interval> &intervals);
+
+  std::vector<WindowResult> probs_by_window_single_chr(
+      const std::vector<Interval> &windows,
+      const std::vector<Interval> &windows_ref_intervals,
+      const std::vector<Interval> &windows_query_intervals,
+      const std::pair<std::string, long long> chr_size_entry);
 };
 
 #endif // WINDOWMODEL_H

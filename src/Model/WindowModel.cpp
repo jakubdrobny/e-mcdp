@@ -26,7 +26,7 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
 
   std::vector<Interval> sortedIntervals = intervals;
   for (size_t idx = 0; idx + 1 < sortedIntervals.size(); idx++) {
-    if (sortedIntervals[idx].end <= sortedIntervals[idx + 1].begin) {
+    if (sortedIntervals[idx].end > sortedIntervals[idx + 1].begin) {
       logger.error(
           "intervals must be non-overlapping for splitting into windows");
       exit(1);
@@ -36,9 +36,8 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
   for (size_t windows_idx = 0; windows_idx < windows.size(); windows_idx++) {
     Interval window = windows[windows_idx];
     for (Interval interval : intervals) {
-      if (interval.end <= window.begin || interval.begin >= window.begin)
+      if (interval.end <= window.begin || interval.begin >= window.end)
         continue;
-      std::cout << "window: " << window << ", interval: " << interval << "\n";
       Interval sliced_interval = interval;
       sliced_interval.begin = std::max(sliced_interval.begin, window.begin);
       sliced_interval.end = std::min(sliced_interval.end, window.end);
@@ -83,33 +82,60 @@ std::vector<WindowResult> WindowModel::run() {
   // #pragma omp parallel for
   for (size_t chr_sizes_idx = 0; chr_sizes_idx < chr_sizes.size();
        chr_sizes_idx++) {
-    std::string chr_name = chr_sizes[chr_sizes_idx].first;
-    logger.info("Loading windows and their intervals for chromosome: " +
-                chr_name);
-
-    long long chr_size = chr_sizes[chr_sizes_idx].second;
-
-    std::vector<std::vector<Interval>> ref_intervals_by_window =
-        get_windows_intervals(windows_by_chr[chr_sizes_idx],
-                              ref_intervals_by_chr[chr_sizes_idx]);
-    std::vector<std::vector<Interval>> query_intervals_by_window =
-        get_windows_intervals(windows_by_chr[chr_sizes_idx],
-                              query_intervals_by_chr[chr_sizes_idx]);
-
-    logger.info("Calculating probs for windows in chromsome: " + chr_name);
-    // TODO: can this work?
-    // #pragma omp parallel for
-    for (size_t window_idx = 0;
-         window_idx < windows_by_chr[chr_sizes_idx].size(); window_idx++) {
-      long long overlap_count =
-          count_overlaps_single_chr(ref_intervals_by_window[window_idx],
-                                    query_intervals_by_window[window_idx]);
-      std::vector<long double> probs = eval_probs_single_chr_direct(
-          ref_intervals_by_window[window_idx],
-          query_intervals_by_window[window_idx], chr_size);
-      Interval cur_window = windows_by_chr[chr_sizes_idx][window_idx];
-      probs_by_window.push_back(WindowResult(cur_window, overlap_count, probs));
+    std::vector<WindowResult> chromosome_probs_by_window;
+    if (algorithm == Algorithm::NAIVE) {
+      chromosome_probs_by_window = probs_by_window_single_chr(
+          windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
+          query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
+    } else if (algorithm == Algorithm::FAST) {
+      // TODO
+    } else {
+      logger.error("invalid algorithm.");
+      exit(1);
     }
+
+    probs_by_window.reserve(probs_by_window.size() +
+                            chromosome_probs_by_window.size());
+    probs_by_window.insert(probs_by_window.end(),
+                           chromosome_probs_by_window.begin(),
+                           chromosome_probs_by_window.end());
+  }
+
+  return probs_by_window;
+}
+
+std::vector<WindowResult> WindowModel::probs_by_window_single_chr(
+    const std::vector<Interval> &windows,
+    const std::vector<Interval> &windows_ref_intervals,
+    const std::vector<Interval> &windows_query_intervals,
+    const std::pair<std::string, long long> chr_size_entry) {
+
+  std::string chr_name = chr_size_entry.first;
+  logger.info("Loading windows and their intervals for chromosome: " +
+              chr_name);
+
+  long long chr_size = chr_size_entry.second;
+
+  std::vector<std::vector<Interval>> ref_intervals_by_window =
+      get_windows_intervals(windows, windows_ref_intervals);
+  std::vector<std::vector<Interval>> query_intervals_by_window =
+      get_windows_intervals(windows, windows_query_intervals);
+
+  logger.info("Calculating probs for windows in chromsome: " + chr_name);
+
+  std::vector<WindowResult> probs_by_window;
+
+  // TODO: can this work?
+  // #pragma omp parallel for
+  for (size_t window_idx = 0; window_idx < windows.size(); window_idx++) {
+    long long overlap_count =
+        count_overlaps_single_chr(ref_intervals_by_window[window_idx],
+                                  query_intervals_by_window[window_idx]);
+    std::vector<long double> probs = eval_probs_single_chr_direct(
+        ref_intervals_by_window[window_idx],
+        query_intervals_by_window[window_idx], chr_size);
+    Interval cur_window = windows[window_idx];
+    probs_by_window.push_back(WindowResult(cur_window, overlap_count, probs));
   }
 
   return probs_by_window;

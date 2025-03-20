@@ -1,0 +1,16 @@
+[2025-03-20 14:35:58] - [INFO]	- Loading reference interval set from: data/02-synth-data/g15_0.ref.tsv
+[2025-03-20 14:35:58] - [INFO]	- Loading query interval set from: data/02-synth-data/g15_0.query.tsv
+[2025-03-20 14:35:58] - [INFO]	- Loading chromosome sizes from: data/02-synth-data/g15_sizes.tsv
+[2025-03-20 14:35:58] - [INFO]	- Number of reference intervals: 500 (500 before merging)
+[2025-03-20 14:35:58] - [INFO]	- Number of query intervals: 5000 (5000 before merging)
+[2025-03-20 14:35:58] - [INFO]	- Number of chromosomes: 1
+[2025-03-20 14:35:58] - [INFO]	- Overlap count: 400
+[2025-03-20 14:35:58] - [INFO]	- Loading window sizes...
+[2025-03-20 14:35:58] - [INFO]	- Number of windows: 100 (100 before preprocessing)
+[2025-03-20 14:35:58] - [INFO]	- Running WindowModel...
+[2025-03-20 14:35:58] - [INFO]	- Sorting intervals and windows...
+[2025-03-20 14:35:58] - [INFO]	- Grouping intervals and windows by chromosome...
+[2025-03-20 14:35:58] - [INFO]	- Loading windows and their intervals for chromosome: chr1
+[2025-03-20 14:35:58] - [INFO]	- Calculating probs for windows in chromsome: chr1
+[2025-03-20 14:35:58] - [DEBUG]	- Time taken to calculate p-value: 27.000000 milliseconds
+
