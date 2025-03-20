@@ -91,7 +91,8 @@ int main(int argc, char *argv[]) {
     logger.info("Number of windows: " + std::to_string(windows.size()) + " (" +
                 std::to_string(raw_window_count) + " before preprocessing)");
 
-    WindowModel model(windows, ref_intervals, query_intervals, chr_sizes);
+    WindowModel model(windows, ref_intervals, query_intervals, chr_sizes,
+                      algorithm);
     std::vector<WindowResult> results = model.run();
 
     output.print("chr_name\tbegin\tend\toverlap_count\tp-value\n");

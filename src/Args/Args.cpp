@@ -1,5 +1,5 @@
 #include "Args.hpp"
-#include <iostream>
+#include "../Enums/Enums.hpp"
 #include <vector>
 
 Args::Args(Logger &logger) : logger(logger) {}
@@ -77,6 +77,17 @@ void Args::parse_args(int argc, char *argv[]) {
       } else {
         log_failed_to_parse_args(flag);
       }
+    } else if (flag == "--algorithm") {
+      if (i + 1 < argc) {
+        std::string algorithmString = argv[++i];
+        if (!validate_enum(algorithmToEnum, algorithmString))
+          log_failed_to_parse_args(flag);
+
+        algorithm = algorithmToEnum.at(algorithmString);
+        logger.info("Parsed --algorithm: " + algorithmString);
+      } else {
+        log_failed_to_parse_args(flag);
+      }
     } else {
       log_invalid_arg(flag);
     }
@@ -92,6 +103,7 @@ void Args::debug_args() {
   logger.debug("query_intervals_file_path: " + query_intervals_file_path);
   logger.debug("chr_size_file_path: " + chr_size_file_path);
   logger.debug("method: " + method);
+  logger.debug("algorithm: " + algorithmToString.at(algorithm));
   logger.debug("windows.source: " + windows_source);
   logger.debug("windows.path: " + windows_path);
   logger.debug("windows.size: " + std::to_string(windows_size));

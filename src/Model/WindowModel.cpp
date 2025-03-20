@@ -7,9 +7,9 @@ WindowModel::WindowModel() {}
 WindowModel::WindowModel(std::vector<Interval> windows,
                          std::vector<Interval> ref_intervals,
                          std::vector<Interval> query_intervals,
-                         ChrSizesMap chr_sizes_map)
+                         ChrSizesMap chr_sizes_map, Algorithm algorithm)
     : windows(windows), ref_intervals(ref_intervals),
-      query_intervals(query_intervals) {
+      query_intervals(query_intervals), algorithm(algorithm) {
 
   chr_sizes = chr_sizes_map_to_array(chr_sizes_map);
   std::sort(chr_sizes.begin(), chr_sizes.end());

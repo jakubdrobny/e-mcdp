@@ -1,6 +1,7 @@
 #ifndef ARGS_H
 #define ARGS_H
 
+#include "../Enums/Enums.hpp"
 #include "../Logger/Logger.hpp"
 #include <string>
 
@@ -17,6 +18,7 @@ public:
   std::string output_file_path;
   std::string log_file_path;
   std::string method = "direct";
+  Algorithm algorithm = Algorithm::NAIVE;
   std::string windows_source;
   std::string windows_path;
   long long windows_size;
