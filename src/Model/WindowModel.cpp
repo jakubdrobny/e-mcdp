@@ -1,7 +1,9 @@
 #include "WindowModel.hpp"
+#include "../Helpers/Helpers.hpp"
 #include "../WindowResult/WindowResult.hpp"
 #include <algorithm>
 #include <iostream>
+#include <set>
 
 WindowModel::WindowModel() {}
 WindowModel::WindowModel(std::vector<Interval> windows,
@@ -16,9 +18,9 @@ WindowModel::WindowModel(std::vector<Interval> windows,
 }
 
 // requires the intervals be non-overlapping
-std::vector<std::vector<Interval>>
-WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
-                                   const std::vector<Interval> &intervals) {
+std::vector<std::vector<Interval>> WindowModel::get_windows_intervals_naive(
+    const std::vector<Interval> &windows,
+    const std::vector<Interval> &intervals) {
   std::vector<std::vector<Interval>> results(windows.size());
   if (intervals.empty()) {
     return results;
@@ -44,6 +46,91 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
       if (sliced_interval.end - sliced_interval.begin < 1)
         continue;
       results[windows_idx].push_back(sliced_interval);
+    }
+  }
+
+  return results;
+}
+
+std::vector<std::vector<Interval>>
+WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
+                                   const std::vector<Interval> &intervals) {
+  std::vector<std::vector<Interval>> results(windows.size());
+  if (intervals.empty()) {
+    return results;
+  }
+
+  if (!are_intervals_non_overlapping(intervals)) {
+    logger.error("intervals need to be non-overlapping for spliting into "
+                 "windows to happen.");
+    exit(1);
+  }
+
+  struct Event {
+    long long pos;
+    bool start, interval;
+    size_t idx;
+  };
+
+  std::vector<Event> events((windows.size() << 1) + (intervals.size() << 1));
+
+  for (size_t idx = 0; idx < windows.size(); idx++) {
+    Interval window = windows[idx];
+    events[idx << 1] = {window.begin, 1, 0, idx};
+    events[(idx << 1) | 1] = {window.end, 0, 0, idx};
+  }
+
+  size_t buf = windows.size() << 1;
+  for (size_t idx = 0; idx < intervals.size(); idx++) {
+    Interval interval = intervals[idx];
+    events[buf + (idx << 1)] = {interval.begin, 1, 1, idx};
+    events[buf + (idx << 1) + 1] = {interval.end, 0, 1, idx};
+  }
+
+  std::sort(events.begin(), events.end(), [](const Event &e1, const Event &e2) {
+    if (e1.pos == e2.pos) {
+      if (e1.start == e2.start) {
+        if (e1.interval == e2.interval) {
+          return e1.idx < e2.idx;
+        }
+        return e1.interval < e2.interval;
+      }
+      return e1.start < e2.start;
+    }
+    return e1.pos < e2.pos;
+  });
+
+  std::set<int> opened_intervals, opened_windows;
+  for (Event event : events) {
+    if (event.start) {
+      if (event.interval) {
+        opened_intervals.insert(event.idx);
+      } else {
+        opened_windows.insert(event.idx);
+      }
+    } else {
+      // ends of windows should come first so that we
+      // do not close the intervals before closing the windows
+      if (!event.interval) {
+        for (int interval_idx : opened_intervals) {
+          Interval sliced_interval = slice_interval_by_window(
+              windows[event.idx], intervals[interval_idx]);
+          if (sliced_interval.length() < 1)
+            continue;
+          results[event.idx].push_back(sliced_interval);
+        }
+        opened_windows.erase(event.idx);
+      } else {
+        // if there are windows opened add this interval to them
+        for (int window_idx : opened_windows) {
+          Interval sliced_interval = slice_interval_by_window(
+              windows[window_idx], intervals[event.idx]);
+          if (sliced_interval.length() < 1)
+            continue;
+          results[window_idx].push_back(sliced_interval);
+        }
+        opened_intervals.erase(event.idx);
+      }
     }
   }
 

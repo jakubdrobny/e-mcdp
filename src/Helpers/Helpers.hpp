@@ -105,4 +105,9 @@ std::vector<std::vector<Interval>>
 get_windows_intervals(const std::vector<Interval> &windows,
                       const std::vector<Interval> &intervals);
 
+Interval slice_interval_by_window(const Interval &window,
+                                  const Interval &interval);
+
+bool are_intervals_non_overlapping(const std::vector<Interval> &intervals);
+
 #endif

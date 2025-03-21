@@ -645,7 +645,7 @@ std::string to_string(const long double &val) {
   return oss.str();
 }
 
-// expects transition matrix 2x2
+// expects 2x2 transition matrix
 std::vector<long double>
 get_stationary_distribution(const std::vector<std::vector<long double>> &mat) {
   if (mat.size() != 2 || mat[0].size() != 2 || mat[1].size() != 2) {
@@ -669,4 +669,22 @@ get_stationary_distribution(const std::vector<std::vector<long double>> &mat) {
   }
 
   return {c / denom, b / denom};
+}
+
+Interval slice_interval_by_window(const Interval &window,
+                                  const Interval &interval) {
+  return {interval.chr_name, std::max(window.begin, interval.begin),
+          std::min(window.end, interval.end)};
+}
+
+bool are_intervals_non_overlapping(const std::vector<Interval> &intervals) {
+  std::vector<Interval> sortedIntervals = intervals;
+  std::sort(sortedIntervals.begin(), sortedIntervals.end());
+  for (size_t idx = 1; idx < sortedIntervals.size(); idx++) {
+    if (sortedIntervals[idx].begin < sortedIntervals[idx - 1].end) {
+      return false;
+    }
+  }
+
+  return true;
 }

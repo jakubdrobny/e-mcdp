@@ -24,6 +24,10 @@ public:
   std::vector<WindowResult> run();
 
   static std::vector<std::vector<Interval>>
+  get_windows_intervals_naive(const std::vector<Interval> &windows,
+                              const std::vector<Interval> &intervals);
+
+  static std::vector<std::vector<Interval>>
   get_windows_intervals(const std::vector<Interval> &windows,
                         const std::vector<Interval> &intervals);
 

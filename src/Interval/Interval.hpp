@@ -17,6 +17,8 @@ public:
   operator std::string() const;
   bool operator<(const Interval &other) const;
   bool operator==(const Interval &other) const;
+
+  long long length();
 };
 
 std::ostream &operator<<(std::ostream &os, const Interval &interval);

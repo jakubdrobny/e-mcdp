@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-#define RUN_TESTS 0
+#define RUN_TESTS 1
 
 Logger logger;
 

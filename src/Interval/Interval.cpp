@@ -38,3 +38,5 @@ bool Interval::operator<(const Interval &other) const {
 bool Interval::operator==(const Interval &other) const {
   return chr_name == other.chr_name && begin == other.begin && end == other.end;
 }
+
+long long Interval::length() { return end - begin; }
