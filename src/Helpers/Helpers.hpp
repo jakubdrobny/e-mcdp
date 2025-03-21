@@ -3,6 +3,7 @@
 
 #include "../Args/Args.hpp"
 #include "../Interval/Interval.hpp"
+#include "../Results/WindowSectionSplitResult.hpp"
 
 #include <string>
 #include <unordered_map>
@@ -109,5 +110,8 @@ Interval slice_interval_by_window(const Interval &window,
                                   const Interval &interval);
 
 bool are_intervals_non_overlapping(const std::vector<Interval> &intervals);
+
+WindowSectionSplitResult split_windows_into_non_overlapping_sections(
+    const std::vector<Interval> &windows);
 
 #endif

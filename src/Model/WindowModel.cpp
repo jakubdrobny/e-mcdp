@@ -1,6 +1,6 @@
 #include "WindowModel.hpp"
 #include "../Helpers/Helpers.hpp"
-#include "../WindowResult/WindowResult.hpp"
+#include "../Results/WindowResult.hpp"
 #include <algorithm>
 #include <iostream>
 #include <set>
@@ -171,11 +171,13 @@ std::vector<WindowResult> WindowModel::run() {
        chr_sizes_idx++) {
     std::vector<WindowResult> chromosome_probs_by_window;
     if (algorithm == Algorithm::NAIVE) {
-      chromosome_probs_by_window = probs_by_window_single_chr(
+      chromosome_probs_by_window = probs_by_window_single_chr_naive(
           windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
           query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
     } else if (algorithm == Algorithm::FAST) {
-      // TODO
+      chromosome_probs_by_window = probs_by_window_single_chr_smarter(
+          windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
+          query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
     } else {
       logger.error("invalid algorithm.");
       exit(1);
@@ -191,10 +193,10 @@ std::vector<WindowResult> WindowModel::run() {
   return probs_by_window;
 }
 
-std::vector<WindowResult> WindowModel::probs_by_window_single_chr(
+std::vector<WindowResult> WindowModel::probs_by_window_single_chr_naive(
     const std::vector<Interval> &windows,
-    const std::vector<Interval> &windows_ref_intervals,
-    const std::vector<Interval> &windows_query_intervals,
+    const std::vector<Interval> &ref_intervals,
+    const std::vector<Interval> &query_intervals,
     const std::pair<std::string, long long> chr_size_entry) {
 
   std::string chr_name = chr_size_entry.first;
@@ -204,9 +206,9 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr(
   long long chr_size = chr_size_entry.second;
 
   std::vector<std::vector<Interval>> ref_intervals_by_window =
-      get_windows_intervals(windows, windows_ref_intervals);
+      get_windows_intervals(windows, ref_intervals);
   std::vector<std::vector<Interval>> query_intervals_by_window =
-      get_windows_intervals(windows, windows_query_intervals);
+      get_windows_intervals(windows, query_intervals);
 
   logger.info("Calculating probs for windows in chromsome: " + chr_name);
 
@@ -226,4 +228,20 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr(
   }
 
   return probs_by_window;
+}
+
+std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
+    const std::vector<Interval> &windows,
+    const std::vector<Interval> &windows_ref_intervals,
+    const std::vector<Interval> &windows_query_intervals,
+    const std::pair<std::string, long long> chr_size_entry) {
+  if (windows.empty()) {
+    return {};
+  }
+
+  // 1. create sections from (possibly) overlapping set of windows
+  WindowSectionSplitResult windowSectionSplitResult =
+      split_windows_into_non_overlapping_sections(windows);
+
+  return {};
 }

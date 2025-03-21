@@ -12,7 +12,8 @@ public:
   long long begin, end;
 
   Interval();
-  Interval(std::string chr_name, long long begin, long long end);
+  Interval(const std::string &chr_name, const long long &begin,
+           const long long &end);
 
   operator std::string() const;
   bool operator<(const Interval &other) const;

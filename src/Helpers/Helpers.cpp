@@ -688,3 +688,57 @@ bool are_intervals_non_overlapping(const std::vector<Interval> &intervals) {
 
   return true;
 }
+
+WindowSectionSplitResult split_windows_into_non_overlapping_sections(
+    const std::vector<Interval> &windows) {
+  if (windows.empty()) {
+    return {};
+  }
+
+  std::string chr_name = windows[0].chr_name;
+
+  struct Event {
+    long long pos;
+    bool start;
+    size_t idx;
+  };
+  std::vector<Event> events(2 * windows.size());
+  for (size_t idx = 0; idx < windows.size(); idx++) {
+    Interval window = windows[idx];
+    events[idx << 1] = {window.begin, 1, idx};
+    events[(idx << 1) | 1] = {window.end, 0, idx};
+  }
+
+  std::sort(events.begin(), events.end(), [](const Event &e1, const Event &e2) {
+    if (e1.pos == e2.pos)
+      return e1.start < e2.start;
+    return e1.pos < e2.pos;
+  });
+
+  std::vector<Interval> spans(windows.size());
+  long long last_pos = -1, section_start = -1;
+
+  std::vector<Interval> sections;
+
+  long long opened = 0;
+  for (Event event : events) {
+    if (opened > 0 && section_start != -1 && event.pos != last_pos) {
+      sections.push_back({chr_name, section_start, event.pos});
+    }
+    if (event.pos != last_pos) {
+      section_start = event.pos;
+    }
+    last_pos = event.pos;
+
+    if (event.start) {
+      opened++;
+      spans[event.idx].begin = sections.size();
+    } else {
+      opened--;
+      spans[event.idx].chr_name = chr_name;
+      spans[event.idx].end = sections.size();
+    }
+  }
+
+  return WindowSectionSplitResult(sections, spans);
+}

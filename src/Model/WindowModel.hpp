@@ -4,7 +4,7 @@
 #include "../Enums/Enums.hpp"
 #include "../Helpers/Helpers.hpp"
 #include "../Interval/Interval.hpp"
-#include "../WindowResult/WindowResult.hpp"
+#include "../Results/WindowResult.hpp"
 #include "Model.hpp"
 #include <vector>
 
@@ -31,7 +31,13 @@ public:
   get_windows_intervals(const std::vector<Interval> &windows,
                         const std::vector<Interval> &intervals);
 
-  std::vector<WindowResult> probs_by_window_single_chr(
+  std::vector<WindowResult> probs_by_window_single_chr_naive(
+      const std::vector<Interval> &windows,
+      const std::vector<Interval> &windows_ref_intervals,
+      const std::vector<Interval> &windows_query_intervals,
+      const std::pair<std::string, long long> chr_size_entry);
+
+  std::vector<WindowResult> probs_by_window_single_chr_smarter(
       const std::vector<Interval> &windows,
       const std::vector<Interval> &windows_ref_intervals,
       const std::vector<Interval> &windows_query_intervals,
