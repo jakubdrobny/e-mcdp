@@ -791,3 +791,38 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(
 
   return WindowSectionSplitResult(sections, spans);
 }
+
+std::vector<long double>
+merge_multi_probs(MultiProbs probs,
+                  std::vector<long double> stationary_distribution) {
+  if (probs.size() != 2 || probs[0].size() != 2 || probs[1].size() != 2 ||
+      stationary_distribution.size() != 2) {
+    logger.error("invalid multiprobs or stationary_distribution "
+                 "dimensions/size for merging into single");
+    exit(1);
+  }
+
+  for (int i : {0, 1}) {
+    for (int j : {0, 1}) {
+      if (probs[0][0].size() != probs[i][j].size()) {
+        logger.error("multi probs probs are not the same length");
+        exit(1);
+      }
+    }
+  }
+
+  long long k = probs[0][0].size();
+  std::vector<long double> res(k);
+  for (size_t i : {0, 1}) {
+    for (size_t idx = 0; idx < k; idx++) {
+      probs[i][0][idx] += probs[i][1][idx];
+    }
+  }
+
+  for (size_t idx = 0; idx < k; idx++) {
+    res[idx] = stationary_distribution[0] * probs[0][0][idx] +
+               stationary_distribution[1] * probs[1][0][idx];
+  }
+
+  return res;
+}

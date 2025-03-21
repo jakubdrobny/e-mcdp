@@ -260,6 +260,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   auto transition_matrics = get_transition_matrices(chr_size, query_intervals);
   std::vector<std::vector<long double>> T = transition_matrics.first,
                                         T_MOD = transition_matrics.second;
+  std::vector<long double> stationary_distribution =
+      get_stationary_distribution(T);
 
   // 4. calculature probs of each section
   std::vector<WindowResult> probs_by_section(sections.size());
@@ -285,6 +287,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
         probs_by_section[span.begin].get_multi_probs();
     long long window_overlap_count =
         probs_by_section[span.begin].get_overlap_count();
+
+    // merge probs for sections
     for (size_t sections_idx = span.begin + 1; sections_idx < span.end;
          sections_idx++) {
       cur_window_probs = joint_logprobs(
@@ -292,8 +296,12 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
       window_overlap_count +=
           probs_by_section[sections_idx].get_overlap_count();
     }
+
+    // merge the final 4 sets of probs for window into one
+    std::vector<long double> cur_windows_single_probs =
+        merge_multi_probs(cur_window_probs, stationary_distribution);
     probs_by_window[windows_idx] = WindowResult(
-        windows[windows_idx], window_overlap_count, cur_window_probs);
+        windows[windows_idx], window_overlap_count, cur_windows_single_probs);
   }
 
   return probs_by_window;
