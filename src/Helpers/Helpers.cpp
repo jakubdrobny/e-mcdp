@@ -340,7 +340,7 @@ ChrSizesVector chr_sizes_map_to_array(ChrSizesMap &chr_sizes_map) {
 
 std::vector<std::vector<long double>>
 get_base_transition_matrix(long long chr_size,
-                           std::vector<Interval> &query_intervals) {
+                           const std::vector<Interval> &query_intervals) {
   std::vector<std::vector<long double>> t(2, std::vector<long double>(2));
 
   long double L = chr_size;
@@ -362,7 +362,7 @@ get_base_transition_matrix(long long chr_size,
 std::pair<std::vector<std::vector<long double>>,
           std::vector<std::vector<long double>>>
 get_transition_matrices(long long chr_size,
-                        std::vector<Interval> &query_intervals) {
+                        const std::vector<Interval> &query_intervals) {
   if (query_intervals.empty()) {
     logger.error("Query intervals should not be empty.");
     exit(1);
@@ -521,6 +521,55 @@ joint_logprobs(const std::vector<std::vector<long double>> &probs_by_chr) {
   }
 
   return next_row;
+}
+
+MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
+  if (probs1.empty() || probs2.empty()) {
+    logger.error("multi probs should not be empty");
+    exit(1);
+  }
+
+  if (probs1.size() != 2 || probs2.size() != 2) {
+    logger.error("invalid multi probs dimensions, 2x2 necessary");
+    exit(1);
+  }
+
+  for (int i : {0, 1}) {
+    if (probs1[i].size() != 2 || probs2[i].size() != 2) {
+      logger.error("invalid multi probs dimensions, 2x2 necessary");
+      exit(1);
+    }
+    for (int j : {0, 1}) {
+      if (probs1[i][j].empty() || probs2[i][j].empty()) {
+        logger.error("probs in multi probs should not be empty");
+        exit(1);
+      }
+    }
+  }
+
+  MultiProbs res(2, std::vector<std::vector<long double>>(2));
+
+  for (int i : {0, 1}) {
+    for (int j : {0, 1}) {
+      std::vector<long double> midpoint_0 =
+                                   joint_logprobs({probs1[i][0], probs2[0][j]}),
+                               midpoint_1 =
+                                   joint_logprobs({probs1[i][1], probs2[1][j]});
+
+      if (midpoint_0.size() != midpoint_1.size()) {
+        logger.error("combined probs with different intermediary states do not "
+                     "have the same lengths. this should not happen :D");
+        exit(1);
+      }
+
+      std::vector<long double> combined(midpoint_0.size());
+      for (size_t idx = 0; idx < midpoint_0.size(); idx++)
+        combined[idx] = midpoint_0[idx] + midpoint_1[idx];
+      res[i][j] = combined;
+    }
+  }
+
+  return res;
 }
 
 // calculate joint p-value for a given `overlap_count`.

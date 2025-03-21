@@ -203,7 +203,7 @@ Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
 template <class T> using SectionProbs = std::vector<std::vector<T>>;
 
 std::vector<std::vector<std::vector<long double>>>
-Model::eval_probs_single_chr_direct_new_windows(
+Model::eval_probs_single_chr_direct_new(
     std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals,
     long long chr_size, long long window_start, long long window_end,
     const std::vector<std::vector<long double>> &T,

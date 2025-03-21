@@ -3,6 +3,7 @@
 
 #include "../Args/Args.hpp"
 #include "../Interval/Interval.hpp"
+#include "../Results/WindowResult.hpp"
 #include "../Results/WindowSectionSplitResult.hpp"
 
 #include <string>
@@ -50,12 +51,12 @@ long double calculate_joint_pvalue(
 
 std::vector<std::vector<long double>>
 get_base_transition_matrix(long long chr_size,
-                           std::vector<Interval> &query_intervals);
+                           const std::vector<Interval> &query_intervals);
 
 std::pair<std::vector<std::vector<long double>>,
           std::vector<std::vector<long double>>>
 get_transition_matrices(long long chr_size,
-                        std::vector<Interval> &query_intervals);
+                        const std::vector<Interval> &query_intervals);
 
 template <typename T>
 void extend(std::vector<T> &self, const std::vector<T> &other);
@@ -70,6 +71,9 @@ binary_exponentiation(const std::vector<std::vector<long double>> &mat,
 
 std::vector<long double>
 joint_logprobs(const std::vector<long double> &probs_by_chr);
+
+// joins two sets of log probs
+MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2);
 
 long double logsumexp(const std::vector<long double> &arr);
 
