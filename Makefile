@@ -28,7 +28,7 @@ run_simple_pvalue_console: clean $(BIN)
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH)
 
 run_basic_windows: clean $(BIN)
-	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --o $(OUTPUT_PATH) --log $(LOG_PATH) --windows.source basic --windows.size $(WINDOWS_SIZE)
+	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --o $(OUTPUT_PATH) --log $(LOG_PATH) --windows.source basic --windows.size $(WINDOWS_SIZE) --algorithm $(ALGORITHM) 
 
 run_basic_windows_console: clean $(BIN)
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --windows.source basic --windows.size $(WINDOWS_SIZE)

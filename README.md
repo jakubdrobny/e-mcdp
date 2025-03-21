@@ -19,9 +19,11 @@ The program provides a set of flags to operate it:
 - `--chs <path-to-your-chromosome-sizes-file>` - REQUIRED, tells the program where to find the file with chromosome sizes
 - `--log <name-of-log-file>` - logs will be written into this file, which will be located in the `data/logs/` directory
 - `--o <name-of-results-file>` - results of the program will be written into this file, which will be located in the `data/output/` directory
-- `--windows.source <file/basic/dense>` - specifies the windows source of windows set
+- `--windows.source <file|basic|dense>` - specifies the windows source of windows set
 - `--windows.path <path-to-your-windows-file>` - required with the `--windows.source file` flag, tells the program the location of the window set file
-- `--windows.`
+- `--windows.size` - required with the `--windows.source <basic|dense>` flags, tells the program the size of windows to generate
+- `--windows.step` - required with the `--windows.source dense` flag, tells the program the shift when generating overlapping set of windows
+- `--algorithm <naive|fast>` - defaults to naive, is used to choose algorithm when evaluating windows
 
 From here you can either run the executable with flags manually or by using any of the `Makefile` directives:
 
@@ -30,7 +32,7 @@ From here you can either run the executable with flags manually or by using any 
   - `make run_sample_basic_windows WINDOWS_SIZE=<your-windows-size>` - to run the algorithm with a set of consecutive non-overlapping windows on a basic data set
   - `make run_sample_dense_windows WINDOWS_SIZE=<your-windows-size> WINDOWS_STEP=<your-windows-step>` - to run the algorithm with a set of overlapping windows on a basic data set
 - Custom data:
-  - arguments `REF_PATH=<ref-path>`, `QUERY_PATH=<query-path>`, `CHR_SIZES_PATH=<chr-sizes-path>`, `OUTPUT_PATH=<output-path>`, `LOG_PATH=<log-path>`, `WINDOWS_PATH=<windows-path>` are supposed to replace `--r <ref-path>`, `--q <query-path>`, `--chs <chr-sizes-path>`, `--o <output-path>`, `--log <log-path>`, `--windows.path <windows-path>` flags respecitvely
+  - arguments `REF_PATH=<ref-path>`, `QUERY_PATH=<query-path>`, `CHR_SIZES_PATH=<chr-sizes-path>`, `OUTPUT_PATH=<output-path>`, `LOG_PATH=<log-path>`, `WINDOWS_PATH=<windows-path>`, `ALGORITHM=<algorithm>` are supposed to replace `--r <ref-path>`, `--q <query-path>`, `--chs <chr-sizes-path>`, `--o <output-path>`, `--log <log-path>`, `--windows.path <windows-path>`, `--algorithm <algorithm>` flags respecitvely
   - `make run_simple_pvalue` - run the basic algorithm on the whole genome
   - `make run_basic_windows` - run the basic algorithm on a basic set of windows
   - `make run_dense_windows` - run the basic algorithm on a dense set of windows

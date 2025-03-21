@@ -811,7 +811,7 @@ merge_multi_probs(MultiProbs probs,
     }
   }
 
-  long long k = probs[0][0].size();
+  size_t k = probs[0][0].size();
   std::vector<long double> res(k);
   for (size_t i : {0, 1}) {
     for (size_t idx = 0; idx < k; idx++) {

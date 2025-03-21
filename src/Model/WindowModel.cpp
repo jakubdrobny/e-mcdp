@@ -289,7 +289,7 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
         probs_by_section[span.begin].get_overlap_count();
 
     // merge probs for sections
-    for (size_t sections_idx = span.begin + 1; sections_idx < span.end;
+    for (long long sections_idx = span.begin + 1; sections_idx < span.end;
          sections_idx++) {
       cur_window_probs = joint_logprobs(
           cur_window_probs, probs_by_section[sections_idx].get_multi_probs());
