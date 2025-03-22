@@ -311,7 +311,7 @@ Model::eval_probs_single_chr_direct_new(
         std::vector<long double> actual_last_col = matrix_to_vector(
             matrix_multiply(vector_to_2d_matrix(last_col[k]),
                             binary_exponentiation(T, trailing_gap)));
-        cur_probs[k] = actual_last_col[end_state];
+        cur_probs[k] = log(actual_last_col[end_state]);
       }
       probs[start_state][end_state] = cur_probs;
     }

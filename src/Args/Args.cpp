@@ -38,7 +38,7 @@ void Args::parse_args(int argc, char *argv[]) {
     } else if (flag == "--log") {
       if (i + 1 < argc) {
         log_file_path = argv[++i];
-        logger.info("Parse --log: " + log_file_path);
+        logger.info("Parsed --log: " + log_file_path);
       } else {
         log_failed_to_parse_args(flag);
       }

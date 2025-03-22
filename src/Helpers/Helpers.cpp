@@ -563,8 +563,9 @@ MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
       }
 
       std::vector<long double> combined(midpoint_0.size());
-      for (size_t idx = 0; idx < midpoint_0.size(); idx++)
-        combined[idx] = midpoint_0[idx] + midpoint_1[idx];
+      for (size_t idx = 0; idx < midpoint_0.size(); idx++) {
+        combined[idx] = logsumexp({midpoint_0[idx], midpoint_1[idx]});
+      }
       res[i][j] = combined;
     }
   }
@@ -794,7 +795,8 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(
 
 std::vector<long double>
 merge_multi_probs(MultiProbs probs,
-                  std::vector<long double> stationary_distribution) {
+                  std::vector<long double> stationary_distribution,
+                  bool debug = false) {
   if (probs.size() != 2 || probs[0].size() != 2 || probs[1].size() != 2 ||
       stationary_distribution.size() != 2) {
     logger.error("invalid multiprobs or stationary_distribution "
@@ -815,14 +817,42 @@ merge_multi_probs(MultiProbs probs,
   std::vector<long double> res(k);
   for (size_t i : {0, 1}) {
     for (size_t idx = 0; idx < k; idx++) {
-      probs[i][0][idx] += probs[i][1][idx];
+      probs[i][0][idx] = logsumexp({probs[i][0][idx], probs[i][1][idx]});
     }
   }
 
-  for (size_t idx = 0; idx < k; idx++) {
-    res[idx] = stationary_distribution[0] * probs[0][0][idx] +
-               stationary_distribution[1] * probs[1][0][idx];
+  if (debug)
+    print_multiprobs(probs);
+
+  if (debug) {
+    std::cout << "stat_distrib: " << stationary_distribution[0] << " "
+              << stationary_distribution[1] << "\n";
+    std::cout << "res:";
   }
+  for (size_t idx = 0; idx < k; idx++) {
+    res[idx] = logsumexp({log(stationary_distribution[0]) + probs[0][0][idx],
+                          log(stationary_distribution[1]) + probs[1][0][idx]});
+    if (debug && idx > 0)
+      std::cout << " " << res[idx];
+  }
+  if (debug)
+    std::cout << "\n";
 
   return res;
+}
+
+void print_multiprobs(const MultiProbs &probs) {
+  if (probs.size() != 2 || probs[0].size() != 2 || probs[1].size() != 2) {
+    std::cout << "invalid dimensions of multiprobs for printing\n";
+    return;
+  }
+
+  for (int i : {0, 1}) {
+    for (int j : {0, 1}) {
+      std::cout << "(" << i << "," << j << "):";
+      for (auto x : probs[i][j])
+        std::cout << " " << x;
+      std::cout << "\n";
+    }
+  }
 }

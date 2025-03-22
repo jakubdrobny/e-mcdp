@@ -171,10 +171,12 @@ std::vector<WindowResult> WindowModel::run() {
        chr_sizes_idx++) {
     std::vector<WindowResult> chromosome_probs_by_window;
     if (algorithm == Algorithm::NAIVE) {
+      std::cout << "NAIVE" << "\n";
       chromosome_probs_by_window = probs_by_window_single_chr_naive(
           windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
           query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
     } else if (algorithm == Algorithm::FAST) {
+      std::cout << "FAST" << "\n";
       chromosome_probs_by_window = probs_by_window_single_chr_smarter(
           windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
           query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
@@ -224,6 +226,10 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_naive(
         ref_intervals_by_window[window_idx],
         query_intervals_by_window[window_idx], chr_size);
     Interval cur_window = windows[window_idx];
+    std::cout << "probs:";
+    for (auto x : probs)
+      std::cout << " " << x;
+    std::cout << "\n";
     probs_by_window.push_back(WindowResult(cur_window, overlap_count, probs));
   }
 
@@ -297,9 +303,15 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
           probs_by_section[sections_idx].get_overlap_count();
     }
 
+    bool debug = windows[windows_idx].chr_name == "chr1" &&
+                 windows[windows_idx].end == 10000;
+    if (debug) {
+      print_multiprobs(cur_window_probs);
+    }
+
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =
-        merge_multi_probs(cur_window_probs, stationary_distribution);
+        merge_multi_probs(cur_window_probs, stationary_distribution, debug);
     probs_by_window[windows_idx] = WindowResult(
         windows[windows_idx], window_overlap_count, cur_windows_single_probs);
   }

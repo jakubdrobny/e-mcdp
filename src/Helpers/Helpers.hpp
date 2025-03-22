@@ -120,6 +120,8 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(
 
 std::vector<long double>
 merge_multi_probs(MultiProbs probs,
-                  std::vector<long double> stationary_distribution);
+                  std::vector<long double> stationary_distribution, bool debug);
+
+void print_multiprobs(const MultiProbs &probs);
 
 #endif
