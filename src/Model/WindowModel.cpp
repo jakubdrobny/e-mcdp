@@ -6,21 +6,17 @@
 #include <set>
 
 WindowModel::WindowModel() {}
-WindowModel::WindowModel(std::vector<Interval> windows,
-                         std::vector<Interval> ref_intervals,
-                         std::vector<Interval> query_intervals,
-                         ChrSizesMap chr_sizes_map, Algorithm algorithm)
-    : windows(windows), ref_intervals(ref_intervals),
-      query_intervals(query_intervals), algorithm(algorithm) {
+WindowModel::WindowModel(std::vector<Interval> windows, std::vector<Interval> ref_intervals,
+                         std::vector<Interval> query_intervals, ChrSizesMap chr_sizes_map, Algorithm algorithm)
+    : windows(windows), ref_intervals(ref_intervals), query_intervals(query_intervals), algorithm(algorithm) {
 
   chr_sizes = chr_sizes_map_to_array(chr_sizes_map);
   std::sort(chr_sizes.begin(), chr_sizes.end());
 }
 
 // requires the intervals be non-overlapping
-std::vector<std::vector<Interval>> WindowModel::get_windows_intervals_naive(
-    const std::vector<Interval> &windows,
-    const std::vector<Interval> &intervals) {
+std::vector<std::vector<Interval>> WindowModel::get_windows_intervals_naive(const std::vector<Interval> &windows,
+                                                                            const std::vector<Interval> &intervals) {
   std::vector<std::vector<Interval>> results(windows.size());
   if (intervals.empty()) {
     return results;
@@ -29,8 +25,7 @@ std::vector<std::vector<Interval>> WindowModel::get_windows_intervals_naive(
   std::vector<Interval> sortedIntervals = intervals;
   for (size_t idx = 0; idx + 1 < sortedIntervals.size(); idx++) {
     if (sortedIntervals[idx].end > sortedIntervals[idx + 1].begin) {
-      logger.error(
-          "intervals must be non-overlapping for splitting into windows");
+      logger.error("intervals must be non-overlapping for splitting into windows");
       exit(1);
     }
   }
@@ -52,9 +47,8 @@ std::vector<std::vector<Interval>> WindowModel::get_windows_intervals_naive(
   return results;
 }
 
-std::vector<std::vector<Interval>>
-WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
-                                   const std::vector<Interval> &intervals) {
+std::vector<std::vector<Interval>> WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
+                                                                      const std::vector<Interval> &intervals) {
   std::vector<std::vector<Interval>> results(windows.size());
   if (intervals.empty()) {
     return results;
@@ -113,8 +107,7 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
       // do not close the intervals before closing the windows
       if (!event.interval) {
         for (int interval_idx : opened_intervals) {
-          Interval sliced_interval = slice_interval_by_window(
-              windows[event.idx], intervals[interval_idx]);
+          Interval sliced_interval = slice_interval_by_window(windows[event.idx], intervals[interval_idx]);
           if (sliced_interval.length() < 1)
             continue;
           results[event.idx].push_back(sliced_interval);
@@ -123,8 +116,7 @@ WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
       } else {
         // if there are windows opened add this interval to them
         for (int window_idx : opened_windows) {
-          Interval sliced_interval = slice_interval_by_window(
-              windows[window_idx], intervals[event.idx]);
+          Interval sliced_interval = slice_interval_by_window(windows[window_idx], intervals[event.idx]);
           if (sliced_interval.length() < 1)
             continue;
           results[window_idx].push_back(sliced_interval);
@@ -147,84 +139,71 @@ std::vector<WindowResult> WindowModel::run() {
 
   logger.info("Grouping intervals and windows by chromosome...");
 
-  std::vector<std::vector<Interval>> windows_by_chr(chr_sizes.size()),
-      ref_intervals_by_chr(chr_sizes.size()),
+  std::vector<std::vector<Interval>> windows_by_chr(chr_sizes.size()), ref_intervals_by_chr(chr_sizes.size()),
       query_intervals_by_chr(chr_sizes.size());
 
-  for (size_t chr_sizes_idx = 0, windows_idx = 0, ref_idx = 0, query_idx = 0;
-       chr_sizes_idx < chr_sizes.size(); chr_sizes_idx++) {
+  for (size_t chr_sizes_idx = 0, windows_idx = 0, ref_idx = 0, query_idx = 0; chr_sizes_idx < chr_sizes.size();
+       chr_sizes_idx++) {
     std::string chr_name = chr_sizes[chr_sizes_idx].first;
 
-    windows_by_chr[chr_sizes_idx] =
-        select_intervals_by_chr_name(windows, windows_idx, chr_name);
-    ref_intervals_by_chr[chr_sizes_idx] =
-        select_intervals_by_chr_name(ref_intervals, ref_idx, chr_name),
-    query_intervals_by_chr[chr_sizes_idx] =
-        select_intervals_by_chr_name(query_intervals, query_idx, chr_name);
+    windows_by_chr[chr_sizes_idx] = select_intervals_by_chr_name(windows, windows_idx, chr_name);
+    ref_intervals_by_chr[chr_sizes_idx] = select_intervals_by_chr_name(ref_intervals, ref_idx, chr_name),
+    query_intervals_by_chr[chr_sizes_idx] = select_intervals_by_chr_name(query_intervals, query_idx, chr_name);
   }
 
   std::vector<WindowResult> probs_by_window;
 
   // turn off for debugging
   // #pragma omp parallel for
-  for (size_t chr_sizes_idx = 0; chr_sizes_idx < chr_sizes.size();
-       chr_sizes_idx++) {
+  for (size_t chr_sizes_idx = 0; chr_sizes_idx < chr_sizes.size(); chr_sizes_idx++) {
     std::vector<WindowResult> chromosome_probs_by_window;
     if (algorithm == Algorithm::NAIVE) {
       std::cout << "NAIVE" << "\n";
-      chromosome_probs_by_window = probs_by_window_single_chr_naive(
-          windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
-          query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
+      chromosome_probs_by_window =
+          probs_by_window_single_chr_naive(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
+                                           query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
     } else if (algorithm == Algorithm::FAST) {
       std::cout << "FAST" << "\n";
-      chromosome_probs_by_window = probs_by_window_single_chr_smarter(
-          windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
-          query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
+      chromosome_probs_by_window =
+          probs_by_window_single_chr_smarter(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
+                                             query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
     } else {
       logger.error("invalid algorithm.");
       exit(1);
     }
 
-    probs_by_window.reserve(probs_by_window.size() +
-                            chromosome_probs_by_window.size());
-    probs_by_window.insert(probs_by_window.end(),
-                           chromosome_probs_by_window.begin(),
-                           chromosome_probs_by_window.end());
+    probs_by_window.reserve(probs_by_window.size() + chromosome_probs_by_window.size());
+    probs_by_window.insert(probs_by_window.end(), chromosome_probs_by_window.begin(), chromosome_probs_by_window.end());
   }
 
   return probs_by_window;
 }
 
 std::vector<WindowResult> WindowModel::probs_by_window_single_chr_naive(
-    const std::vector<Interval> &windows,
-    const std::vector<Interval> &ref_intervals,
-    const std::vector<Interval> &query_intervals,
-    const std::pair<std::string, long long> chr_size_entry) {
+    const std::vector<Interval> &windows, const std::vector<Interval> &ref_intervals,
+    const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry) {
 
   std::string chr_name = chr_size_entry.first;
-  logger.info("Loading windows and their intervals for chromosome: " +
-              chr_name);
+  logger.info("Loading windows and their intervals for chromosome: " + chr_name);
 
   long long chr_size = chr_size_entry.second;
 
-  std::vector<std::vector<Interval>> ref_intervals_by_window =
-      get_windows_intervals(windows, ref_intervals);
-  std::vector<std::vector<Interval>> query_intervals_by_window =
-      get_windows_intervals(windows, query_intervals);
+  std::vector<std::vector<Interval>> ref_intervals_by_window = get_windows_intervals(windows, ref_intervals);
+  std::vector<std::vector<Interval>> query_intervals_by_window = get_windows_intervals(windows, query_intervals);
 
   logger.info("Calculating probs for windows in chromsome: " + chr_name);
 
   std::vector<WindowResult> probs_by_window;
 
+  MarkovChain markov_chain(chr_size, query_intervals);
+
   // TODO: can this work?
   // #pragma omp parallel for
   for (size_t window_idx = 0; window_idx < windows.size(); window_idx++) {
     long long overlap_count =
-        count_overlaps_single_chr(ref_intervals_by_window[window_idx],
-                                  query_intervals_by_window[window_idx]);
+        count_overlaps_single_chr(ref_intervals_by_window[window_idx], query_intervals_by_window[window_idx]);
     std::vector<long double> probs = eval_probs_single_chr_direct(
-        ref_intervals_by_window[window_idx],
-        query_intervals_by_window[window_idx], chr_size);
+        ref_intervals_by_window[window_idx], query_intervals_by_window[window_idx], markov_chain, chr_size);
     Interval cur_window = windows[window_idx];
     std::cout << "probs:";
     for (auto x : probs)
@@ -237,11 +216,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_naive(
 }
 
 std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
-    const std::vector<Interval> &windows,
-    const std::vector<Interval> &ref_intervals,
-    const std::vector<Interval> &query_intervals,
-    const std::pair<std::string, long long> chr_size_entry,
-    const MarkovChain &mc) {
+    const std::vector<Interval> &windows, const std::vector<Interval> &ref_intervals,
+    const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry) {
   if (windows.empty()) {
     return {};
   }
@@ -249,8 +225,7 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   long long chr_size = chr_size_entry.second;
 
   // 1. create sections from (possibly) overlapping set of windows
-  WindowSectionSplitResult windowSectionSplitResult =
-      split_windows_into_non_overlapping_sections(windows);
+  WindowSectionSplitResult windowSectionSplitResult = split_windows_into_non_overlapping_sections(windows);
   std::vector<Interval> sections = windowSectionSplitResult.get_sections();
   std::vector<Interval> spans = windowSectionSplitResult.get_spans();
 
@@ -265,33 +240,22 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
   // 2. load intervals into sections, will be fast since both are
   // non-overlapping
-  std::vector<std::vector<Interval>> ref_intervals_by_section =
-                                         get_windows_intervals(sections,
-                                                               ref_intervals),
-                                     query_intervals_by_section =
-                                         get_windows_intervals(sections,
-                                                               query_intervals);
+  std::vector<std::vector<Interval>> ref_intervals_by_section = get_windows_intervals(sections, ref_intervals),
+                                     query_intervals_by_section = get_windows_intervals(sections, query_intervals);
 
   // 3. calculate transition matrices
-  auto transition_matrics = get_transition_matrices(chr_size, query_intervals);
-  std::vector<std::vector<long double>> T = transition_matrics.first,
-                                        T_MOD = transition_matrics.second;
-  std::vector<long double> stationary_distribution =
-      get_stationary_distribution(T);
+  MarkovChain markov_chain(chr_size, query_intervals);
 
   // 4. calculature probs of each section
   std::vector<WindowResult> probs_by_section(sections.size());
   for (size_t section_idx = 0; section_idx < sections.size(); section_idx++) {
     long long overlap_count =
-        count_overlaps_single_chr(ref_intervals_by_section[section_idx],
-                                  query_intervals_by_section[section_idx]);
+        count_overlaps_single_chr(ref_intervals_by_section[section_idx], query_intervals_by_section[section_idx]);
     MultiProbs probs = eval_probs_single_chr_direct_new(
-        ref_intervals_by_section[section_idx],
-        query_intervals_by_section[section_idx], chr_size,
-        sections[section_idx].begin, sections[section_idx].end, T, T_MOD);
+        ref_intervals_by_section[section_idx], query_intervals_by_section[section_idx], chr_size,
+        sections[section_idx].begin, sections[section_idx].end, markov_chain);
     Interval cur_section = sections[section_idx];
-    probs_by_section[section_idx] =
-        WindowResult(cur_section, overlap_count, probs);
+    probs_by_section[section_idx] = WindowResult(cur_section, overlap_count, probs);
   }
 
   // 5. merge section probs for each window
@@ -299,20 +263,14 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
   for (size_t windows_idx = 0; windows_idx < windows.size(); windows_idx++) {
     Interval span = spans[windows_idx];
-    MultiProbs cur_window_probs =
-        probs_by_section[span.begin].get_multi_probs();
-    long long window_overlap_count =
-        probs_by_section[span.begin].get_overlap_count();
-    std::cout << "window: " << windows[windows_idx]
-              << ", span: " << spans[windows_idx] << "\n";
+    MultiProbs cur_window_probs = probs_by_section[span.begin].get_multi_probs();
+    long long window_overlap_count = probs_by_section[span.begin].get_overlap_count();
+    std::cout << "window: " << windows[windows_idx] << ", span: " << spans[windows_idx] << "\n";
 
     // merge probs for sections
-    for (long long sections_idx = span.begin + 1; sections_idx < span.end;
-         sections_idx++) {
-      cur_window_probs = joint_logprobs(
-          cur_window_probs, probs_by_section[sections_idx].get_multi_probs());
-      window_overlap_count +=
-          probs_by_section[sections_idx].get_overlap_count();
+    for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
+      cur_window_probs = joint_logprobs(cur_window_probs, probs_by_section[sections_idx].get_multi_probs());
+      window_overlap_count += probs_by_section[sections_idx].get_overlap_count();
     }
 
     // bool debug = windows[windows_idx].chr_name == "chr1" &&
@@ -323,10 +281,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
     //}
 
     // merge the final 4 sets of probs for window into one
-    std::vector<long double> cur_windows_single_probs =
-        merge_multi_probs(cur_window_probs, stationary_distribution, debug);
-    probs_by_window[windows_idx] = WindowResult(
-        windows[windows_idx], window_overlap_count, cur_windows_single_probs);
+    std::vector<long double> cur_windows_single_probs = merge_multi_probs(cur_window_probs, markov_chain, debug);
+    probs_by_window[windows_idx] = WindowResult(windows[windows_idx], window_overlap_count, cur_windows_single_probs);
   }
 
   return probs_by_window;

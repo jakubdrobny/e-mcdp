@@ -741,9 +741,8 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   return WindowSectionSplitResult(sections, spans);
 }
 
-std::vector<long double> merge_multi_probs(MultiProbs probs, std::vector<long double> stationary_distribution,
-                                           bool debug = false) {
-  if (probs.size() != 2 || probs[0].size() != 2 || probs[1].size() != 2 || stationary_distribution.size() != 2) {
+std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain, bool debug = false) {
+  if (probs.size() != 2 || probs[0].size() != 2 || probs[1].size() != 2) {
     logger.error("invalid multiprobs or stationary_distribution "
                  "dimensions/size for merging into single");
     exit(1);
@@ -768,6 +767,8 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, std::vector<long do
 
   // if (debug)
   // print_multiprobs(probs);
+
+  StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
 
   if (debug) {
     std::cout << "stat_distrib: " << stationary_distribution[0] << " " << stationary_distribution[1] << "\n";

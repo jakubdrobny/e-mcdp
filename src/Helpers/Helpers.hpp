@@ -3,6 +3,7 @@
 
 #include "../Args/Args.hpp"
 #include "../Interval/Interval.hpp"
+#include "../MarkovChain/MarkovChain.hpp"
 #include "../Results/WindowResult.hpp"
 #include "../Results/WindowSectionSplitResult.hpp"
 
@@ -101,8 +102,7 @@ bool are_intervals_non_overlapping(const std::vector<Interval> &intervals);
 
 WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::vector<Interval> &windows);
 
-std::vector<long double> merge_multi_probs(MultiProbs probs, std::vector<long double> stationary_distribution,
-                                           bool debug);
+std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain, bool debug);
 
 void print_multiprobs(const MultiProbs &probs);
 

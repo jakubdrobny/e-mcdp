@@ -40,25 +40,19 @@ int main(int argc, char *argv[]) {
 
   Output output(args.output_file_path);
 
-  logger.info("Loading reference interval set from: " +
-              args.ref_intervals_file_path);
-  std::vector<Interval> ref_intervals =
-      load_intervals(args.ref_intervals_file_path);
+  logger.info("Loading reference interval set from: " + args.ref_intervals_file_path);
+  std::vector<Interval> ref_intervals = load_intervals(args.ref_intervals_file_path);
 
-  logger.info("Loading query interval set from: " +
-              args.query_intervals_file_path);
-  std::vector<Interval> query_intervals =
-      load_intervals(args.query_intervals_file_path);
+  logger.info("Loading query interval set from: " + args.query_intervals_file_path);
+  std::vector<Interval> query_intervals = load_intervals(args.query_intervals_file_path);
 
   logger.info("Loading chromosome sizes from: " + args.chr_size_file_path);
-  std::unordered_map<std::string, long long> chr_sizes =
-      load_chr_sizes(args.chr_size_file_path);
+  std::unordered_map<std::string, long long> chr_sizes = load_chr_sizes(args.chr_size_file_path);
 
   size_t raw_ref_count = ref_intervals.size();
   size_t raw_query_count = query_intervals.size();
 
-  std::unordered_set<std::string> chr_names =
-      load_chr_names_from_chr_sizes(chr_sizes);
+  std::unordered_set<std::string> chr_names = load_chr_names_from_chr_sizes(chr_sizes);
 
   ref_intervals = filter_intervals_by_chr_name(ref_intervals, chr_names);
   query_intervals = filter_intervals_by_chr_name(query_intervals, chr_names);
@@ -69,12 +63,10 @@ int main(int argc, char *argv[]) {
   ref_intervals = remove_empty_intervals(ref_intervals);
   query_intervals = remove_empty_intervals(query_intervals);
 
-  logger.info(
-      "Number of reference intervals: " + std::to_string(ref_intervals.size()) +
-      " (" + std::to_string(raw_ref_count) + " before merging)");
-  logger.info(
-      "Number of query intervals: " + std::to_string(query_intervals.size()) +
-      " (" + std::to_string(raw_query_count) + " before merging)");
+  logger.info("Number of reference intervals: " + std::to_string(ref_intervals.size()) + " (" +
+              std::to_string(raw_ref_count) + " before merging)");
+  logger.info("Number of query intervals: " + std::to_string(query_intervals.size()) + " (" +
+              std::to_string(raw_query_count) + " before merging)");
   logger.info("Number of chromosomes: " + std::to_string(chr_sizes.size()));
 
   long long overlap_count = count_overlaps(ref_intervals, query_intervals);
@@ -88,27 +80,22 @@ int main(int argc, char *argv[]) {
     windows = filter_intervals_by_chr_name(windows, chr_names);
     windows = remove_empty_intervals(windows);
 
-    logger.info("Number of windows: " + std::to_string(windows.size()) + " (" +
-                std::to_string(raw_window_count) + " before preprocessing)");
+    logger.info("Number of windows: " + std::to_string(windows.size()) + " (" + std::to_string(raw_window_count) +
+                " before preprocessing)");
 
-    WindowModel model(windows, ref_intervals, query_intervals, chr_sizes,
-                      args.algorithm);
+    WindowModel model(windows, ref_intervals, query_intervals, chr_sizes, args.algorithm);
     std::vector<WindowResult> results = model.run();
 
     output.print("chr_name\tbegin\tend\toverlap_count\tp-value\n");
     for (WindowResult result : results) {
-      long double p_value = calculate_joint_pvalue({result.get_probs()},
-                                                   result.get_overlap_count());
+      long double p_value = calculate_joint_pvalue({result.get_probs()}, result.get_overlap_count());
       Interval window = result.get_window();
-      output.print(window.chr_name + "\t" + std::to_string(window.begin) +
-                   "\t" + std::to_string(window.end) + "\t" +
-                   std::to_string(result.get_overlap_count()) + "\t" +
-                   std::to_string(p_value) + "\n");
+      output.print(window.chr_name + "\t" + std::to_string(window.begin) + "\t" + std::to_string(window.end) + "\t" +
+                   std::to_string(result.get_overlap_count()) + "\t" + std::to_string(p_value) + "\n");
     }
 
     long double duration = timer.elapsed<std::chrono::milliseconds>();
-    logger.debug("Time taken to calculate p-value: " +
-                 std::to_string(duration) + " milliseconds\n");
+    logger.debug("Time taken to calculate p-value: " + std::to_string(duration) + " milliseconds\n");
   } else {
     // ideme pocitat pre cely genom spolu
     Model model(ref_intervals, query_intervals, chr_sizes, args.method);
@@ -119,8 +106,7 @@ int main(int argc, char *argv[]) {
 
     logger.info("eval_pvalue: p-value=" + to_string(p_value));
 
-    logger.debug("Time taken to calculate p-value: " +
-                 std::to_string(duration) + " milliseconds\n");
+    logger.debug("Time taken to calculate p-value: " + std::to_string(duration) + " milliseconds\n");
   }
 
   return 0;
