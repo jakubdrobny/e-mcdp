@@ -240,7 +240,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
     const std::vector<Interval> &windows,
     const std::vector<Interval> &ref_intervals,
     const std::vector<Interval> &query_intervals,
-    const std::pair<std::string, long long> chr_size_entry) {
+    const std::pair<std::string, long long> chr_size_entry,
+    const MarkovChain &mc) {
   if (windows.empty()) {
     return {};
   }
@@ -252,6 +253,15 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
       split_windows_into_non_overlapping_sections(windows);
   std::vector<Interval> sections = windowSectionSplitResult.get_sections();
   std::vector<Interval> spans = windowSectionSplitResult.get_spans();
+
+  std::cout << "sections:";
+  for (auto x : sections)
+    std::cout << " " << x;
+  std::cout << "\n";
+  std::cout << "windows:";
+  for (auto x : windows)
+    std::cout << " " << x;
+  std::cout << "\n";
 
   // 2. load intervals into sections, will be fast since both are
   // non-overlapping
@@ -293,6 +303,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
         probs_by_section[span.begin].get_multi_probs();
     long long window_overlap_count =
         probs_by_section[span.begin].get_overlap_count();
+    std::cout << "window: " << windows[windows_idx]
+              << ", span: " << spans[windows_idx] << "\n";
 
     // merge probs for sections
     for (long long sections_idx = span.begin + 1; sections_idx < span.end;
@@ -303,11 +315,12 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
           probs_by_section[sections_idx].get_overlap_count();
     }
 
-    bool debug = windows[windows_idx].chr_name == "chr1" &&
-                 windows[windows_idx].end == 10000;
-    if (debug) {
-      print_multiprobs(cur_window_probs);
-    }
+    // bool debug = windows[windows_idx].chr_name == "chr1" &&
+    // windows[windows_idx].end == 10000;
+    bool debug = 1;
+    // if (debug) {
+    // print_multiprobs(cur_window_probs);
+    //}
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =

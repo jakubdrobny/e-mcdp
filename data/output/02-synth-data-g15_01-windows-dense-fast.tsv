@@ -1,0 +1,4 @@
+chr_name	begin	end	overlap_count	p-value
+chr1	0	10000	5	0.208548
+chr1	5000	15000	3	0.893345
+chr1	10000	15000	0	2.000000

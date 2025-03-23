@@ -27,6 +27,12 @@ run_simple_pvalue: clean $(BIN)
 run_simple_pvalue_console: clean $(BIN) 
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH)
 
+run_windows: clean $(BIN)
+	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --o $(OUTPUT_PATH) --log $(LOG_PATH) --windows.source $(WINDOWS_SOURCE) --windows.size $(WINDOWS_SIZE) --algorithm $(ALGORITHM) 
+
+run_windows_console: clean $(BIN)
+	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --windows.source $(WINDOWS_SOURCE) --windows.size $(WINDOWS_SIZE) --algorithm $(ALGORITHM) 
+
 run_basic_windows: clean $(BIN)
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --o $(OUTPUT_PATH) --log $(LOG_PATH) --windows.source basic --windows.size $(WINDOWS_SIZE) --algorithm $(ALGORITHM) 
 
@@ -34,7 +40,7 @@ run_basic_windows_console: clean $(BIN)
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --windows.source basic --windows.size $(WINDOWS_SIZE)
 
 run_dense_windows: clean $(BIN)
-	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --o $(OUTPUT_PATH) --log $(LOG_PATH) --windows.source dense --windows.size $(WINDOWS_SIZE) --windows.step $(WINDOWS_STEP)
+	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --o $(OUTPUT_PATH) --log $(LOG_PATH) --windows.source dense --windows.size $(WINDOWS_SIZE) --windows.step $(WINDOWS_STEP) --algorithm $(ALGORITHM)
 
 run_dense_windows_console: clean $(BIN)
 	@./bin/e-mcdp --r $(REF_PATH) --q $(QUERY_PATH) --chs $(CHR_SIZES_PATH) --windows.source dense --windows.size $(WINDOWS_SIZE) --windows.step $(WINDOWS_STEP)
