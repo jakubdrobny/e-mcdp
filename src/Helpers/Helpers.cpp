@@ -1,5 +1,6 @@
 #include "Helpers.hpp"
 #include "../Interval/Interval.hpp"
+#include "../Interval/Section.hpp"
 #include "../Logger/Logger.hpp"
 #include <algorithm>
 #include <array>
@@ -8,6 +9,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -688,40 +690,75 @@ bool are_intervals_non_overlapping(const std::vector<Interval> &intervals) {
   return true;
 }
 
-WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::vector<Interval> &windows) {
+WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::vector<Interval> &windows,
+                                                                     const std::vector<Interval> &ref_intervals) {
   if (windows.empty()) {
     return {};
   }
 
   std::string chr_name = windows[0].chr_name;
 
+  const int INTERVAL = 0;
+  const int WINDOW = 1;
   struct Event {
     long long pos;
     bool start;
     size_t idx;
+    int type;
   };
-  std::vector<Event> events(2 * windows.size());
+  std::vector<Event> events(2 * windows.size() + 2 * ref_intervals.size());
   for (size_t idx = 0; idx < windows.size(); idx++) {
     Interval window = windows[idx];
-    events[idx << 1] = {window.begin, 1, idx};
-    events[(idx << 1) | 1] = {window.end, 0, idx};
+    events[idx << 1] = {window.begin, 1, idx, WINDOW};
+    events[(idx << 1) | 1] = {window.end, 0, idx, WINDOW};
+  }
+
+  size_t buf = 2 * windows.size();
+  for (size_t idx = 0; idx < ref_intervals.size(); idx++) {
+    Interval ref_interval = ref_intervals[idx];
+    events[buf + (idx << 1)] = {ref_interval.begin, 0, idx, INTERVAL};
+    events[buf + ((idx << 1) | 1)] = {ref_interval.end, 1, idx, INTERVAL};
   }
 
   std::sort(events.begin(), events.end(), [](const Event &e1, const Event &e2) {
-    if (e1.pos == e2.pos)
-      return e1.start < e2.start;
-    return e1.pos < e2.pos;
+    if (e1.type == e2.type) {
+      if (e1.pos == e2.pos)
+        return e1.start < e2.start;
+      return e1.pos < e2.pos;
+    }
+    return e1.type < e2.type;
   });
 
   std::vector<Interval> spans(windows.size());
   long long last_pos = -1, section_start = -1;
 
-  std::vector<Interval> sections;
+  std::vector<Section> sections;
+  std::set<Interval> currently_opened_intervals_by_start;
+  auto interval_cmp_by_end = [](const Interval &i1, const Interval &i2) { return i1.end < i2.end; };
+  std::set<Interval, decltype(interval_cmp_by_end)> currently_opened_intervals_by_end(interval_cmp_by_end);
 
   long long opened = 0;
   for (Event event : events) {
+    if (event.type == INTERVAL) {
+      Interval current_ref_interval = ref_intervals[event.idx];
+      if (event.start) {
+        currently_opened_intervals_by_start.insert(current_ref_interval);
+        currently_opened_intervals_by_end.insert(current_ref_interval);
+      } else {
+        currently_opened_intervals_by_start.erase(current_ref_interval);
+        currently_opened_intervals_by_end.erase(current_ref_interval);
+      }
+    }
+
     if (opened > 0 && section_start != -1 && event.pos != last_pos) {
-      sections.push_back({chr_name, section_start, event.pos});
+      long long section_end = event.pos;
+      long long soonest_interval_start = currently_opened_intervals_by_start.empty()
+                                             ? section_start
+                                             : currently_opened_intervals_by_start.begin()->begin;
+      long long latest_interval_end =
+          currently_opened_intervals_by_end.empty() ? section_end : currently_opened_intervals_by_end.rbegin()->end;
+      sections.push_back(Section(chr_name, section_start, section_end, soonest_interval_start < section_start,
+                                 section_end < latest_interval_end));
     }
     if (event.pos != last_pos) {
       section_start = event.pos;

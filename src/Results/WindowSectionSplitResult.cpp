@@ -4,8 +4,8 @@
 
 WindowSectionSplitResult::WindowSectionSplitResult() {}
 
-WindowSectionSplitResult::WindowSectionSplitResult(std::vector<Interval> sections, std::vector<Interval> spans)
+WindowSectionSplitResult::WindowSectionSplitResult(std::vector<Section> sections, std::vector<Interval> spans)
     : sections(sections), spans(spans) {}
 
-std::vector<Interval> WindowSectionSplitResult::get_sections() { return sections; }
+std::vector<Section> WindowSectionSplitResult::get_sections() { return sections; }
 std::vector<Interval> WindowSectionSplitResult::get_spans() { return spans; }

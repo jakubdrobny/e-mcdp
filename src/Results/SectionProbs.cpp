@@ -5,7 +5,7 @@ SectionProbs::SectionProbs(MultiProbs normal, MultiProbs except_first, MultiProb
     : normal(normal), except_first(except_first), except_last(except_last),
       except_first_and_last(except_first_and_last) {}
 
-MultiProbs SectionProbs::get_normal() { return this->normal; }
-MultiProbs SectionProbs::get_except_first() { return this->except_first; }
-MultiProbs SectionProbs::get_except_last() { return this->except_last; }
-MultiProbs SectionProbs::get_except_first_and_last() { return this->except_first_and_last; }
+MultiProbs SectionProbs::get_normal() const { return this->normal; }
+MultiProbs SectionProbs::get_except_first() const { return this->except_first; }
+MultiProbs SectionProbs::get_except_last() const { return this->except_last; }
+MultiProbs SectionProbs::get_except_first_and_last() const { return this->except_first_and_last; }

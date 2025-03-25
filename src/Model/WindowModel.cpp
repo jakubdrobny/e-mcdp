@@ -1,8 +1,8 @@
 #include "WindowModel.hpp"
 #include "../Helpers/Helpers.hpp"
+#include "../Interval/Section.hpp"
 #include "../Results/WindowResult.hpp"
 #include <algorithm>
-#include <iostream>
 #include <set>
 
 WindowModel::WindowModel() {}
@@ -220,7 +220,7 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
   // 1. create sections from (possibly) overlapping set of windows
   WindowSectionSplitResult windowSectionSplitResult = split_windows_into_non_overlapping_sections(windows);
-  std::vector<Interval> sections = windowSectionSplitResult.get_sections();
+  std::vector<Section> sections = windowSectionSplitResult.get_sections();
   std::vector<Interval> spans = windowSectionSplitResult.get_spans();
 
   // 2. load intervals into sections, will be fast since both are
