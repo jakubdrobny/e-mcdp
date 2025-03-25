@@ -6,9 +6,7 @@
 
 enum class Algorithm { NAIVE, FAST };
 
-template <typename T>
-extern bool validate_enum(const std::map<std::string, T> &stringToEnum,
-                          const std::string &str) {
+template <typename T> extern bool validate_enum(const std::map<std::string, T> &stringToEnum, const std::string &str) {
   return stringToEnum.count(str);
 }
 

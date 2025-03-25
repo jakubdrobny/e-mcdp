@@ -102,7 +102,7 @@ bool are_intervals_non_overlapping(const std::vector<Interval> &intervals);
 
 WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::vector<Interval> &windows);
 
-std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain, bool debug);
+std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain);
 
 void print_multiprobs(const MultiProbs &probs);
 

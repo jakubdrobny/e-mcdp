@@ -361,7 +361,7 @@ std::vector<std::vector<long double>> matrix_multiply(const std::vector<std::vec
 
 std::array<std::array<long double, 2>, 2> matrix_multiply(const std::array<std::array<long double, 2>, 2> &mat1,
                                                           const std::array<std::array<long double, 2>, 2> &mat2) {
-  std::array<std::array<long double, 2>, 2> result;
+  std::array<std::array<long double, 2>, 2> result{};
 
   for (int i : {0, 1}) {
     for (int j : {0, 1}) {
@@ -410,7 +410,7 @@ std::vector<std::vector<long double>> binary_exponentiation(const std::vector<st
 
 std::array<std::array<long double, 2>, 2> binary_exponentiation(const std::array<std::array<long double, 2>, 2> &mat,
                                                                 long long power) {
-  std::array<std::array<long double, 2>, 2> result;
+  std::array<std::array<long double, 2>, 2> result{};
   for (size_t i = 0; i < result.size(); i++) {
     result[i][i] = 1;
   }
@@ -581,7 +581,7 @@ std::vector<std::vector<long double>> add_matrices(const std::vector<std::vector
 
 std::array<std::array<long double, 2>, 2> add_matrices(const std::array<std::array<long double, 2>, 2> &mat1,
                                                        const std::array<std::array<long double, 2>, 2> &mat2) {
-  std::array<std::array<long double, 2>, 2> result;
+  std::array<std::array<long double, 2>, 2> result{};
   for (int i : {0, 1}) {
     for (int j : {0, 1}) {
       result[i][j] = mat1[i][j] + mat2[i][j];
@@ -610,7 +610,7 @@ std::vector<std::vector<long double>> subtract_matrices(const std::vector<std::v
 
 std::array<std::array<long double, 2>, 2> subtract_matrices(const std::array<std::array<long double, 2>, 2> &mat1,
                                                             const std::array<std::array<long double, 2>, 2> &mat2) {
-  std::array<std::array<long double, 2>, 2> result;
+  std::array<std::array<long double, 2>, 2> result{};
   for (int i : {0, 1}) {
     for (int j : {0, 1}) {
       result[i][j] = mat1[i][j] - mat2[i][j];
@@ -741,7 +741,7 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   return WindowSectionSplitResult(sections, spans);
 }
 
-std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain, bool debug = false) {
+std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain) {
   if (probs.size() != 2 || probs[0].size() != 2 || probs[1].size() != 2) {
     logger.error("invalid multiprobs or stationary_distribution "
                  "dimensions/size for merging into single");
@@ -759,29 +759,28 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
 
   size_t k = probs[0][0].size();
   std::vector<long double> res(k);
+  if (k == 1) {
+    bool empty = true;
+    for (int i : {0, 1})
+      for (int j : {0, 1})
+        empty = empty & (probs[i][j][0] == 0);
+    if (empty) {
+      return res;
+    }
+  }
+
   for (size_t i : {0, 1}) {
     for (size_t idx = 0; idx < k; idx++) {
       probs[i][0][idx] = logsumexp({probs[i][0][idx], probs[i][1][idx]});
     }
   }
 
-  // if (debug)
-  // print_multiprobs(probs);
-
   StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
 
-  if (debug) {
-    std::cout << "stat_distrib: " << stationary_distribution[0] << " " << stationary_distribution[1] << "\n";
-    std::cout << "res:";
-  }
   for (size_t idx = 0; idx < k; idx++) {
     res[idx] = logsumexp(
         {log(stationary_distribution[0]) + probs[0][0][idx], log(stationary_distribution[1]) + probs[1][0][idx]});
-    if (debug)
-      std::cout << " " << res[idx];
   }
-  if (debug)
-    std::cout << "\n";
 
   return res;
 }

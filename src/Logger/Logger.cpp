@@ -22,8 +22,7 @@ Logger::~Logger() {
 }
 
 void Logger::log(Level level, const std::string &message) {
-  std::string log_entry = "[" + get_timestamp() + "] - [" +
-                          level_to_string(level) + "]\t- " + message;
+  std::string log_entry = "[" + get_timestamp() + "] - [" + level_to_string(level) + "]\t- " + message;
 
   if (log_to_file) {
     file_output << log_entry << std::endl;
@@ -45,12 +44,9 @@ std::string Logger::get_timestamp() {
   std::tm *now_tm = std::localtime(&now);
 
   std::ostringstream oss;
-  oss << (now_tm->tm_year + 1900) << "-"
-      << std::format("{:02}", now_tm->tm_mon + 1) << "-"
-      << std::format("{:02}", now_tm->tm_mday) << " "
-      << std::format("{:02}", now_tm->tm_hour) << ":"
-      << std::format("{:02}", now_tm->tm_min) << ":"
-      << std::format("{:02}", now_tm->tm_sec);
+  oss << (now_tm->tm_year + 1900) << "-" << std::format("{:02}", now_tm->tm_mon + 1) << "-"
+      << std::format("{:02}", now_tm->tm_mday) << " " << std::format("{:02}", now_tm->tm_hour) << ":"
+      << std::format("{:02}", now_tm->tm_min) << ":" << std::format("{:02}", now_tm->tm_sec);
   return oss.str();
 }
 

@@ -15,10 +15,8 @@ private:
 
 public:
   WindowResult();
-  WindowResult(Interval window, long long overlap_count,
-               std::vector<long double> probs);
-  WindowResult(Interval window, long long overlap_count,
-               MultiProbs multi_probs);
+  WindowResult(Interval window, long long overlap_count, std::vector<long double> probs);
+  WindowResult(Interval window, long long overlap_count, MultiProbs multi_probs);
 
   Interval get_window();
   long long get_overlap_count();

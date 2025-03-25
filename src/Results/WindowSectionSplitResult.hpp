@@ -10,8 +10,7 @@ private:
 
 public:
   WindowSectionSplitResult();
-  WindowSectionSplitResult(std::vector<Interval> sections,
-                           std::vector<Interval> spans);
+  WindowSectionSplitResult(std::vector<Interval> sections, std::vector<Interval> spans);
 
   std::vector<Interval> get_sections();
   std::vector<Interval> get_spans();

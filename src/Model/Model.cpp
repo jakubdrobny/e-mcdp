@@ -83,10 +83,10 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
 
   std::vector<std::array<long double, 2>> prev_line(m + 1, std::array<long double, 2>()),
       last_col(m + 1, std::array<long double, 2>());
-  prev_line[0][0] = 1;
-  // StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
-  //  prev_line[0][0] = stationary_distribution[0];
-  //  prev_line[0][1] = stationary_distribution[1];
+  // prev_line[0][0] = 1;
+  StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
+  prev_line[0][0] = stationary_distribution[0];
+  prev_line[0][1] = stationary_distribution[1];
 
   // calculate zero-th row in separate way
   for (int j = 1; j <= m; j++) {
@@ -104,9 +104,9 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
       exit(1);
     }
 
-    std::array<std::array<long double, 2>, 2> result =
-        matrix_multiply({{prev_line[j - 1]}}, matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
-                                                              binary_exponentiation(markov_chain.get_T_MOD(), len)));
+    std::array<std::array<long double, 2>, 2> result = matrix_multiply(
+        {{prev_line[j - 1], {{}}}}, matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
+                                                    binary_exponentiation(markov_chain.get_T_MOD(), len)));
     prev_line[j] = result[0];
   }
 
@@ -136,12 +136,12 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
       }
 
       // dont_hit = P[j-1, k] * T^gap * D^len
-      std::array<std::array<long double, 2>, 2> dont_hit =
-          matrix_multiply({{next_line[j - 1]}}, matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
-                                                                binary_exponentiation(markov_chain.get_T_MOD(), len)));
+      std::array<std::array<long double, 2>, 2> dont_hit = matrix_multiply(
+          {{next_line[j - 1], {{}}}}, matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
+                                                      binary_exponentiation(markov_chain.get_T_MOD(), len)));
       // hit = P[j-1, k-1] * T^gap * (T^len - D^l)
       std::array<std::array<long double, 2>, 2> hit =
-          matrix_multiply({{prev_line[j - 1]}},
+          matrix_multiply({{prev_line[j - 1], {{}}}},
                           matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
                                           subtract_matrices(binary_exponentiation(markov_chain.get_T(), len),
                                                             binary_exponentiation(markov_chain.get_T_MOD(), len))));
@@ -150,8 +150,7 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
       next_line[j] = add_matrices(dont_hit, hit)[0];
     }
 
-    last_col[k][0] = next_line[next_line.size() - 1][0];
-    last_col[k][1] = next_line[next_line.size() - 1][1];
+    last_col[k] = next_line[next_line.size() - 1];
 
     prev_line = next_line;
   }
@@ -159,10 +158,7 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
   std::vector<long double> probs(m + 1);
   for (int k = 0; k <= m; k++) {
     long long trailing_gap = chr_size - ref_intervals_augmented[m].end;
-    // std::cout << "lastcol: " << last_col[k][0] << ", " << last_col[k][1]
-    //<< "\n";
-    last_col[k] = matrix_multiply({{last_col[k]}}, binary_exponentiation(markov_chain.get_T(), trailing_gap))[0];
-    // std::cout << "lastcol: " << last_col[k][0] << ", " << last_col[k][1] << "\n";
+    last_col[k] = matrix_multiply({{last_col[k], {{}}}}, binary_exponentiation(markov_chain.get_T(), trailing_gap))[0];
     probs[k] = log(last_col[k][0] + last_col[k][1]);
   }
 
@@ -186,7 +182,8 @@ Model::eval_probs_single_chr_direct_new(std::vector<Interval> ref_intervals, std
 
   SectionProbs<std::vector<long double>> probs(2, std::vector<std::vector<long double>>(2));
   for (int start_state : {0, 1}) {
-    std::array<std::array<long double, 2>, 2> prev_line, last_col;
+    std::vector<std::array<long double, 2>> prev_line(m + 1, std::array<long double, 2>{}),
+        last_col(m + 1, std::array<long double, 2>{});
     prev_line[0][start_state] = 1;
 
     // calculate zero-th row in separate way
@@ -203,15 +200,15 @@ Model::eval_probs_single_chr_direct_new(std::vector<Interval> ref_intervals, std
         exit(1);
       }
 
-      std::array<std::array<long double, 2>, 2> result =
-          matrix_multiply({{prev_line[j - 1]}}, matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
-                                                                binary_exponentiation(markov_chain.get_T_MOD(), len)));
+      std::array<std::array<long double, 2>, 2> result = matrix_multiply(
+          {{prev_line[j - 1], {{}}}}, matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
+                                                      binary_exponentiation(markov_chain.get_T_MOD(), len)));
       prev_line[j] = result[0];
     }
 
     last_col[0] = prev_line[prev_line.size() - 1];
 
-    std::array<std::array<long double, 2>, 2> next_line;
+    std::vector<std::array<long double, 2>> next_line(m + 1, std::array<long double, 2>{});
     for (int k = 1; k <= m; k++) {
       next_line[k - 1] = {0, 0};
 
@@ -235,11 +232,11 @@ Model::eval_probs_single_chr_direct_new(std::vector<Interval> ref_intervals, std
 
         // dont_hit = P[j-1, k] * T^gap * D^len
         std::array<std::array<long double, 2>, 2> dont_hit = matrix_multiply(
-            {{next_line[j - 1]}}, matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
-                                                  binary_exponentiation(markov_chain.get_T_MOD(), len)));
+            {{next_line[j - 1], {{}}}}, matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
+                                                        binary_exponentiation(markov_chain.get_T_MOD(), len)));
         // hit = P[j-1, k-1] * T^gap * (T^len - D^l)
         std::array<std::array<long double, 2>, 2> hit =
-            matrix_multiply({{prev_line[j - 1]}},
+            matrix_multiply({{prev_line[j - 1], {{}}}},
                             matrix_multiply(binary_exponentiation(markov_chain.get_T(), gap),
                                             subtract_matrices(binary_exponentiation(markov_chain.get_T(), len),
                                                               binary_exponentiation(markov_chain.get_T_MOD(), len))));
@@ -248,8 +245,7 @@ Model::eval_probs_single_chr_direct_new(std::vector<Interval> ref_intervals, std
         next_line[j] = add_matrices(dont_hit, hit)[0];
       }
 
-      last_col[k][0] = next_line[next_line.size() - 1][0];
-      last_col[k][1] = next_line[next_line.size() - 1][1];
+      last_col[k] = next_line[next_line.size() - 1];
 
       prev_line = next_line;
     }
@@ -259,15 +255,12 @@ Model::eval_probs_single_chr_direct_new(std::vector<Interval> ref_intervals, std
       // length of gap from end of last interval to end of window
       long long trailing_gap = window_end - ref_intervals_augmented[m].end;
       std::array<long double, 2> actual_last_col =
-          matrix_multiply({{last_col[k]}}, binary_exponentiation(markov_chain.get_T(), trailing_gap))[0];
-      std::cout << "last_col_fast: " << actual_last_col[0] << " " << actual_last_col[1] << "\n";
+          matrix_multiply({{last_col[k], {{}}}}, binary_exponentiation(markov_chain.get_T(), trailing_gap))[0];
       for (int ending_state : {0, 1})
         cur_probs[ending_state][k] = log(actual_last_col[ending_state]);
     }
     probs[start_state] = cur_probs;
   }
-
-  std::cout << probs[0][0].size() << " probs.size()\n";
 
   return probs;
 }

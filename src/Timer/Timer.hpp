@@ -10,9 +10,7 @@ public:
   void reset();
 
   template <typename Duration>
-    requires std::derived_from<Duration,
-                               std::chrono::duration<typename Duration::rep,
-                                                     typename Duration::period>>
+    requires std::derived_from<Duration, std::chrono::duration<typename Duration::rep, typename Duration::period>>
   double elapsed() const;
 
 private:

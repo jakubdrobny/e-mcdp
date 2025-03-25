@@ -136,16 +136,13 @@ void Args::check_required_args() {
 }
 
 void Args::check_invalid_args() {
-  if (!windows_source.empty() && windows_source != "file" &&
-      windows_source != "basic" && windows_source != "dense") {
-    logger.error(
-        "--windows.source flag can only have values of file, basic or dense.");
+  if (!windows_source.empty() && windows_source != "file" && windows_source != "basic" && windows_source != "dense") {
+    logger.error("--windows.source flag can only have values of file, basic or dense.");
     exit(1);
   }
 
   if (windows_source == "file" && windows_path.empty()) {
-    logger.error(
-        "--windows.source set to file, but --windows.path was not set.");
+    logger.error("--windows.source set to file, but --windows.path was not set.");
     exit(1);
   }
 
@@ -156,9 +153,8 @@ void Args::check_invalid_args() {
   }
 
   if (windows_source == "dense") {
-    std::vector<std::pair<std::string, bool>> conditions = {
-        {"--windows.size", (windows_size <= 0)},
-        {"--windows.step", (windows_step <= 0)}};
+    std::vector<std::pair<std::string, bool>> conditions = {{"--windows.size", (windows_size <= 0)},
+                                                            {"--windows.step", (windows_step <= 0)}};
 
     for (auto entry : conditions) {
       if (entry.second) {

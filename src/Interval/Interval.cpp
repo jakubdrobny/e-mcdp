@@ -3,18 +3,15 @@
 
 Interval::Interval() : chr_name(), begin(), end() {}
 
-Interval::Interval(const std::string &chr_name, const long long &begin,
-                   const long long &end)
+Interval::Interval(const std::string &chr_name, const long long &begin, const long long &end)
     : chr_name(chr_name), begin(begin), end(end) {}
 
 Interval::operator std::string() const {
-  return chr_name + ": [" + std::to_string(begin) + ", " + std::to_string(end) +
-         ")";
+  return chr_name + ": [" + std::to_string(begin) + ", " + std::to_string(end) + ")";
 }
 
 std::ostream &operator<<(std::ostream &os, const Interval &interval) {
-  os << interval.chr_name + ": [" + std::to_string(interval.begin) + ", " +
-            std::to_string(interval.end) + ")";
+  os << interval.chr_name + ": [" + std::to_string(interval.begin) + ", " + std::to_string(interval.end) + ")";
   return os;
 }
 

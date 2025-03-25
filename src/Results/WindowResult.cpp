@@ -4,12 +4,10 @@
 
 WindowResult::WindowResult() {}
 
-WindowResult::WindowResult(Interval window, long long overlap_count,
-                           std::vector<long double> probs)
+WindowResult::WindowResult(Interval window, long long overlap_count, std::vector<long double> probs)
     : window(window), overlap_count(overlap_count), probs(probs) {}
 
-WindowResult::WindowResult(Interval window, long long overlap_count,
-                           MultiProbs multi_probs)
+WindowResult::WindowResult(Interval window, long long overlap_count, MultiProbs multi_probs)
     : window(window), overlap_count(overlap_count), multi_probs(multi_probs) {}
 
 Interval WindowResult::get_window() { return window; }
