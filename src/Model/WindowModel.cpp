@@ -238,8 +238,7 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
     long long overlap_count =
         count_overlaps_single_chr(ref_intervals_by_section[section_idx], query_intervals_by_section[section_idx]);
     MultiProbs probs = eval_probs_single_chr_direct_new(
-        ref_intervals_by_section[section_idx], query_intervals_by_section[section_idx], chr_size,
-        sections[section_idx].begin, sections[section_idx].end, markov_chain);
+        ref_intervals_by_section[section_idx], sections[section_idx].begin, sections[section_idx].end, markov_chain);
     Interval cur_section = sections[section_idx];
     probs_by_section[section_idx] = WindowResult(cur_section, overlap_count, probs);
   }
@@ -264,4 +263,26 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   }
 
   return probs_by_window;
+}
+
+SectionProbs WindowModel::eval_probs_single_section(const std::vector<Interval> &ref_intervals, long long section_start,
+                                                    long long section_end, const MarkovChain &markov_chain) {
+  MultiProbs probs_normal = eval_probs_single_chr_direct_new(ref_intervals, section_start, section_end, markov_chain);
+
+  std::vector<Interval> ref_intervals_except_last(ref_intervals.begin(), ref_intervals.end() - 1);
+  long long new_section_end = ref_intervals_except_last.empty() ? section_start : ref_intervals_except_last.back().end;
+  MultiProbs probs_except_last =
+      eval_probs_single_chr_direct_new(ref_intervals_except_last, section_start, new_section_end, markov_chain);
+
+  std::vector<Interval> ref_intervals_except_first(ref_intervals.begin() + 1, ref_intervals.end());
+  long long new_section_start = ref_intervals.empty() ? section_start : ref_intervals[0].end;
+  MultiProbs probs_except_first =
+      eval_probs_single_chr_direct_new(ref_intervals_except_first, new_section_start, section_end, markov_chain);
+
+  std::vector<Interval> ref_intervals_except_first_and_last(ref_intervals_except_first.begin(),
+                                                            ref_intervals_except_first.end() - 1);
+  MultiProbs probs_except_first_and_last = eval_probs_single_chr_direct_new(
+      ref_intervals_except_first_and_last, new_section_start, new_section_end, markov_chain);
+
+  return SectionProbs(probs_normal, probs_except_first, probs_except_last, probs_except_first_and_last);
 }

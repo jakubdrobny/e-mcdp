@@ -168,10 +168,9 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
 template <class T> using SectionProbs = std::vector<std::vector<T>>;
 
 std::vector<std::vector<std::vector<long double>>>
-Model::eval_probs_single_chr_direct_new(std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals,
-                                        long long chr_size, long long window_start, long long window_end,
-                                        const MarkovChain &markov_chain) {
-  if (ref_intervals.empty() || query_intervals.empty())
+Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_intervals, long long window_start,
+                                        long long window_end, const MarkovChain &markov_chain) {
+  if (ref_intervals.empty())
     return {{{0.}, {0.}}, {{0.}, {0.}}};
 
   int m = ref_intervals.size();

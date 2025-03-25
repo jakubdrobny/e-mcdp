@@ -32,9 +32,8 @@ public:
                                                                      const MarkovChain &markov_chain,
                                                                      long long chr_size);
   static std::vector<std::vector<std::vector<long double>>>
-  eval_probs_single_chr_direct_new(std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals,
-                                   long long chr_size, long long window_start, long long window_end,
-                                   const MarkovChain &markov_chain);
+  eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_intervals, long long window_start,
+                                   long long window_end, const MarkovChain &markov_chain);
 
 protected:
   static std::vector<Interval> select_intervals_by_chr_name(std::vector<Interval> &intervals, size_t &intervals_idx,
