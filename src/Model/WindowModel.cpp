@@ -47,8 +47,11 @@ std::vector<std::vector<Interval>> WindowModel::get_windows_intervals_naive(cons
   return results;
 }
 
-std::vector<std::vector<Interval>> WindowModel::get_windows_intervals(const std::vector<Interval> &windows,
+template <typename WindowType>
+std::vector<std::vector<Interval>> WindowModel::get_windows_intervals(const std::vector<WindowType> &windows,
                                                                       const std::vector<Interval> &intervals) {
+  static_assert(std::is_base_of<Interval, WindowType>::value, "WindowType must inherit from Interval");
+
   std::vector<std::vector<Interval>> results(windows.size());
   if (intervals.empty()) {
     return results;
@@ -70,8 +73,8 @@ std::vector<std::vector<Interval>> WindowModel::get_windows_intervals(const std:
 
   for (size_t idx = 0; idx < windows.size(); idx++) {
     Interval window = windows[idx];
-    events[idx << 1] = {window.begin, 1, 0, idx};
-    events[(idx << 1) | 1] = {window.end, 0, 0, idx};
+    events[idx << 1] = {window.get_begin(), 1, 0, idx};
+    events[(idx << 1) | 1] = {window.get_end(), 0, 0, idx};
   }
 
   size_t buf = windows.size() << 1;
@@ -186,8 +189,9 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_naive(
 
   long long chr_size = chr_size_entry.second;
 
-  std::vector<std::vector<Interval>> ref_intervals_by_window = get_windows_intervals(windows, ref_intervals);
-  std::vector<std::vector<Interval>> query_intervals_by_window = get_windows_intervals(windows, query_intervals);
+  std::vector<std::vector<Interval>> ref_intervals_by_window = get_windows_intervals<Interval>(windows, ref_intervals);
+  std::vector<std::vector<Interval>> query_intervals_by_window =
+      get_windows_intervals<Interval>(windows, query_intervals);
 
   logger.info("Calculating probs for windows in chromsome: " + chr_name);
 
@@ -219,14 +223,16 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   long long chr_size = chr_size_entry.second;
 
   // 1. create sections from (possibly) overlapping set of windows
-  WindowSectionSplitResult windowSectionSplitResult = split_windows_into_non_overlapping_sections(windows);
+  WindowSectionSplitResult windowSectionSplitResult =
+      split_windows_into_non_overlapping_sections(windows, ref_intervals);
   std::vector<Section> sections = windowSectionSplitResult.get_sections();
   std::vector<Interval> spans = windowSectionSplitResult.get_spans();
 
   // 2. load intervals into sections, will be fast since both are
   // non-overlapping
-  std::vector<std::vector<Interval>> ref_intervals_by_section = get_windows_intervals(sections, ref_intervals),
-                                     query_intervals_by_section = get_windows_intervals(sections, query_intervals);
+  std::vector<std::vector<Interval>> ref_intervals_by_section = get_windows_intervals<Section>(sections, ref_intervals),
+                                     query_intervals_by_section =
+                                         get_windows_intervals<Section>(sections, query_intervals);
 
   // 3. calculate transition matrices
   MarkovChain markov_chain(chr_size, query_intervals);
@@ -286,3 +292,11 @@ SectionProbs WindowModel::eval_probs_single_section(const std::vector<Interval> 
 
   return SectionProbs(probs_normal, probs_except_first, probs_except_last, probs_except_first_and_last);
 }
+
+template std::vector<std::vector<Interval>>
+WindowModel::get_windows_intervals<Interval>(const std::vector<Interval> &windows,
+                                             const std::vector<Interval> &intervals);
+
+template std::vector<std::vector<Interval>>
+WindowModel::get_windows_intervals<Section>(const std::vector<Section> &sections,
+                                            const std::vector<Interval> &intervals);

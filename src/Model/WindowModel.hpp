@@ -25,7 +25,8 @@ public:
   static std::vector<std::vector<Interval>> get_windows_intervals_naive(const std::vector<Interval> &windows,
                                                                         const std::vector<Interval> &intervals);
 
-  static std::vector<std::vector<Interval>> get_windows_intervals(const std::vector<Interval> &windows,
+  template <typename WindowType>
+  static std::vector<std::vector<Interval>> get_windows_intervals(const std::vector<WindowType> &windows,
                                                                   const std::vector<Interval> &intervals);
 
   std::vector<WindowResult> probs_by_window_single_chr_naive(const std::vector<Interval> &windows,

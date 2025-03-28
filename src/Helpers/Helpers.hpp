@@ -100,7 +100,8 @@ Interval slice_interval_by_window(const Interval &window, const Interval &interv
 
 bool are_intervals_non_overlapping(const std::vector<Interval> &intervals);
 
-WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::vector<Interval> &windows);
+WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::vector<Interval> &windows,
+                                                                     const std::vector<Interval> &ref_intervals);
 
 std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain);
 

@@ -127,14 +127,14 @@ TEST(GetWindowsIntervalsTest, NestedWindow) {
 
 TEST(SplitWindowsTest, EmptyInput) {
   std::vector<Interval> windows;
-  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows);
+  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows, {});
   EXPECT_TRUE(result.get_sections().empty());
   EXPECT_TRUE(result.get_spans().empty());
 }
 
 TEST(SplitWindowsTest, SingleWindow) {
   std::vector<Interval> windows = {{"chr1", 100, 200}};
-  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows);
+  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows, {});
 
   ASSERT_EQ(result.get_sections().size(), 1);
   EXPECT_EQ(result.get_sections()[0], Interval("chr1", 100, 200));
@@ -145,7 +145,7 @@ TEST(SplitWindowsTest, SingleWindow) {
 
 TEST(SplitWindowsTest, NonOverlappingWindows) {
   std::vector<Interval> windows = {{"chr1", 100, 200}, {"chr1", 300, 400}};
-  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows);
+  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows, {});
 
   ASSERT_EQ(result.get_sections().size(), 2);
   EXPECT_EQ(result.get_sections()[0], Interval("chr1", 100, 200));
@@ -158,7 +158,7 @@ TEST(SplitWindowsTest, NonOverlappingWindows) {
 
 TEST(SplitWindowsTest, OverlappingWindows) {
   std::vector<Interval> windows = {{"chr1", 100, 300}, {"chr1", 200, 400}};
-  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows);
+  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows, {});
 
   ASSERT_EQ(result.get_sections().size(), 3);
   EXPECT_EQ(result.get_sections()[0], Interval("chr1", 100, 200));
@@ -172,7 +172,7 @@ TEST(SplitWindowsTest, OverlappingWindows) {
 
 TEST(SplitWindowsTest, AdjacentWindows) {
   std::vector<Interval> windows = {{"chr1", 100, 200}, {"chr1", 200, 300}};
-  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows);
+  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows, {});
 
   ASSERT_EQ(result.get_sections().size(), 2);
   EXPECT_EQ(result.get_sections()[0], Interval("chr1", 100, 200));
@@ -185,7 +185,7 @@ TEST(SplitWindowsTest, AdjacentWindows) {
 
 TEST(SplitWindowsTest, ComplexOverlapping) {
   std::vector<Interval> windows = {{"chr1", 100, 400}, {"chr1", 200, 500}, {"chr1", 300, 600}};
-  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows);
+  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows, {});
 
   ASSERT_EQ(result.get_sections().size(), 5);
   EXPECT_EQ(result.get_sections()[0], Interval("chr1", 100, 200));
