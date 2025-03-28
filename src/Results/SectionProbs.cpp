@@ -1,5 +1,6 @@
 #include "SectionProbs.hpp"
 
+SectionProbs::SectionProbs() {}
 SectionProbs::SectionProbs(MultiProbs normal, MultiProbs except_first, MultiProbs except_last,
                            MultiProbs except_first_and_last)
     : normal(normal), except_first(except_first), except_last(except_last),

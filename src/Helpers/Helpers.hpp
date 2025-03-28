@@ -4,6 +4,7 @@
 #include "../Args/Args.hpp"
 #include "../Interval/Interval.hpp"
 #include "../MarkovChain/MarkovChain.hpp"
+#include "../Results/SectionProbs.hpp"
 #include "../Results/WindowResult.hpp"
 #include "../Results/WindowSectionSplitResult.hpp"
 
@@ -106,5 +107,7 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
 std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain);
 
 void print_multiprobs(const MultiProbs &probs);
+
+SectionProbs join_section_logprobs(const SectionProbs &probs1, const SectionProbs &probs2);
 
 #endif

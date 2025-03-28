@@ -5,6 +5,7 @@
 
 class SectionProbs {
 public:
+  SectionProbs();
   SectionProbs(MultiProbs normal, MultiProbs except_first, MultiProbs except_last, MultiProbs except_first_and_last);
 
   MultiProbs get_normal() const;

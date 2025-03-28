@@ -837,3 +837,10 @@ void print_multiprobs(const MultiProbs &probs) {
     }
   }
 }
+
+SectionProbs join_section_logprobs(const Section &section1, const SectionProbs &probs1, const Section &section2,
+                                   const SectionProbs &probs2) {
+  // MultiProbs new_normal = section1.last_interval_intersected && section2.first_interval_intersected ?
+  // joint_logprobs(probs1.get_except_last(), probs); return resultProbs;
+  return {};
+}

@@ -239,14 +239,11 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   // markov_chain.print();
 
   // 4. calculature probs of each section
-  std::vector<WindowResult> probs_by_section(sections.size());
+  std::vector<SectionProbs> probs_by_section(sections.size());
   for (size_t section_idx = 0; section_idx < sections.size(); section_idx++) {
-    long long overlap_count =
-        count_overlaps_single_chr(ref_intervals_by_section[section_idx], query_intervals_by_section[section_idx]);
-    MultiProbs probs = eval_probs_single_chr_direct_new(
-        ref_intervals_by_section[section_idx], sections[section_idx].begin, sections[section_idx].end, markov_chain);
-    Interval cur_section = sections[section_idx];
-    probs_by_section[section_idx] = WindowResult(cur_section, overlap_count, probs);
+    SectionProbs probs = eval_probs_single_section(ref_intervals_by_section[section_idx], sections[section_idx].begin,
+                                                   sections[section_idx].end, markov_chain);
+    probs_by_section[section_idx] = probs;
   }
 
   // 5. merge section probs for each window
@@ -254,18 +251,16 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
   for (size_t windows_idx = 0; windows_idx < windows.size(); windows_idx++) {
     Interval span = spans[windows_idx];
-    MultiProbs cur_window_probs = probs_by_section[span.begin].get_multi_probs();
-    long long window_overlap_count = probs_by_section[span.begin].get_overlap_count();
+    SectionProbs cur_window_probs = sections[span.begin];
 
     // merge probs for sections
     for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
-      cur_window_probs = joint_logprobs(cur_window_probs, probs_by_section[sections_idx].get_multi_probs());
-      window_overlap_count += probs_by_section[sections_idx].get_overlap_count();
+      cur_window_probs = join_section_logprobs(cur_window_probs, probs_by_section[sections_idx]);
     }
 
     // merge the final 4 sets of probs for window into one
-    std::vector<long double> cur_windows_single_probs = merge_multi_probs(cur_window_probs, markov_chain);
-    probs_by_window[windows_idx] = WindowResult(windows[windows_idx], window_overlap_count, cur_windows_single_probs);
+    std::vector<long double> cur_windows_single_probs = merge_multi_probs(cur_window_probs.get_normal(), markov_chain);
+    probs_by_window[windows_idx] = WindowResult(windows[windows_idx], 01, cur_windows_single_probs);
   }
 
   return probs_by_window;
