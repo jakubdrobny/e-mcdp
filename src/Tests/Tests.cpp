@@ -199,3 +199,17 @@ TEST(SplitWindowsTest, ComplexOverlapping) {
   EXPECT_EQ(result.get_spans()[1], Interval("chr1", 1, 4));
   EXPECT_EQ(result.get_spans()[2], Interval("chr1", 2, 5));
 }
+
+TEST(SplitWindowsTest, IntervalOverflow) {
+  std::vector<Interval> windows = {{"chr1", 100, 200}, {"chr1", 200, 300}};
+  WindowSectionSplitResult result =
+      split_windows_into_non_overlapping_sections(windows, {{"chr1", 100, 250}, {"chr1", 270, 300}});
+
+  ASSERT_EQ(result.get_sections().size(), 2);
+  EXPECT_EQ(result.get_sections()[0], Section("chr1", 100, 200, false, true));
+  EXPECT_EQ(result.get_sections()[1], Section("chr1", 200, 300, true, false));
+
+  ASSERT_EQ(result.get_spans().size(), 2);
+  EXPECT_EQ(result.get_spans()[0], Interval("chr1", 0, 1));
+  EXPECT_EQ(result.get_spans()[1], Interval("chr1", 1, 2));
+}
