@@ -239,11 +239,10 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   // markov_chain.print();
 
   // 4. calculature probs of each section
-  std::vector<SectionProbs> probs_by_section(sections.size());
   for (size_t section_idx = 0; section_idx < sections.size(); section_idx++) {
     SectionProbs probs = eval_probs_single_section(ref_intervals_by_section[section_idx], sections[section_idx].begin,
                                                    sections[section_idx].end, markov_chain);
-    probs_by_section[section_idx] = probs;
+    sections[section_idx].set_probs(probs);
   }
 
   // 5. merge section probs for each window
@@ -251,11 +250,12 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
   for (size_t windows_idx = 0; windows_idx < windows.size(); windows_idx++) {
     Interval span = spans[windows_idx];
-    SectionProbs cur_window_probs = sections[span.begin];
+    Section section = sections[span.begin];
 
     // merge probs for sections
     for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
-      cur_window_probs = join_section_logprobs(cur_window_probs, probs_by_section[sections_idx]);
+      cur_window_probs = join_section_logprobs(sections[sections_idx - 1], cur_window_probs, sections[sections_idx],
+                                               probs_by_section[sections_idx]);
     }
 
     // merge the final 4 sets of probs for window into one

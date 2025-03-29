@@ -2,6 +2,7 @@
 #include "../Interval/Interval.hpp"
 #include "../Interval/Section.hpp"
 #include "../Logger/Logger.hpp"
+#include "../Model/Model.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -839,8 +840,21 @@ void print_multiprobs(const MultiProbs &probs) {
 }
 
 SectionProbs join_section_logprobs(const Section &section1, const SectionProbs &probs1, const Section &section2,
-                                   const SectionProbs &probs2) {
-  // MultiProbs new_normal = section1.last_interval_intersected && section2.first_interval_intersected ?
-  // joint_logprobs(probs1.get_except_last(), probs); return resultProbs;
+                                   const SectionProbs &probs2, const MarkovChain &markov_chain) {
+  MultiProbs new_normal = joint_logprobs(probs1.get_normal(), probs2.get_normal());
+  if (!section1.get_intervals().empty() && section1.get_last_interval_intersected() &&
+      !section2.get_intervals().empty() && section2.get_first_interval_intersected()) {
+    Interval last_section1 = section1.get_intervals().back();
+    Interval first_section2 = section2.get_intervals().front();
+    std::vector<Interval> ref_intervals = {
+        (Interval(last_section1.get_chr_name(), last_section1.get_begin(), first_section2.get_end()))};
+    long long new_start = section1.get_begin();
+    if (section1.get_intervals().size() > 1)
+      new_start = section1.get_intervals()[section1.get_intervals().size() - 2].get_end();
+    MultiProbs middle_probs =
+        Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_section2.get_end(), markov_chain);
+    new_normal = joint_logprobs(joint_logprobs(probs1.get_except_last(), middle_probs), probs2.get_except_first());
+  }
+
   return {};
 }
