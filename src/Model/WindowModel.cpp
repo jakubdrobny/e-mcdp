@@ -254,12 +254,12 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
     // merge probs for sections
     for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
-      cur_window_probs = join_section_logprobs(sections[sections_idx - 1], cur_window_probs, sections[sections_idx],
-                                               probs_by_section[sections_idx]);
+      section = join_sections(section, sections[sections_idx], markov_chain);
     }
 
     // merge the final 4 sets of probs for window into one
-    std::vector<long double> cur_windows_single_probs = merge_multi_probs(cur_window_probs.get_normal(), markov_chain);
+    std::vector<long double> cur_windows_single_probs =
+        merge_multi_probs(section.get_probs().get_normal(), markov_chain);
     probs_by_window[windows_idx] = WindowResult(windows[windows_idx], 01, cur_windows_single_probs);
   }
 

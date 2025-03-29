@@ -108,7 +108,6 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
 
 void print_multiprobs(const MultiProbs &probs);
 
-SectionProbs join_section_logprobs(const Section &section1, const SectionProbs &probs1, const Section &section2,
-                                   const SectionProbs &probs2);
+Section join_sections(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
 
 #endif

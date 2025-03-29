@@ -839,22 +839,59 @@ void print_multiprobs(const MultiProbs &probs) {
   }
 }
 
-SectionProbs join_section_logprobs(const Section &section1, const SectionProbs &probs1, const Section &section2,
-                                   const SectionProbs &probs2, const MarkovChain &markov_chain) {
+Section join_sections(const Section &section1, const Section &section2, const MarkovChain &markov_chain) {
+  SectionProbs probs1 = section1.get_probs(), probs2 = section2.get_probs();
+  std::vector<Interval> ints1 = section1.get_intervals(), ints2 = section2.get_intervals();
+  bool overflows = !ints1.empty() && section1.get_last_interval_intersected() && !ints2.empty() &&
+                   section2.get_first_interval_intersected();
+
+  Interval last_section1 = ints1.back();
+  Interval first_section2 = ints2.front();
+  std::vector<Interval> ref_intervals = {
+      (Interval(last_section1.get_chr_name(), last_section1.get_begin(), first_section2.get_end()))};
+  long long new_start = section1.get_begin();
+  if (section1.get_intervals().size() > 1)
+    new_start = section1.get_intervals()[section1.get_intervals().size() - 2].get_end();
+  MultiProbs middle_probs =
+      Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_section2.get_end(), markov_chain);
+
   MultiProbs new_normal = joint_logprobs(probs1.get_normal(), probs2.get_normal());
-  if (!section1.get_intervals().empty() && section1.get_last_interval_intersected() &&
-      !section2.get_intervals().empty() && section2.get_first_interval_intersected()) {
-    Interval last_section1 = section1.get_intervals().back();
-    Interval first_section2 = section2.get_intervals().front();
-    std::vector<Interval> ref_intervals = {
-        (Interval(last_section1.get_chr_name(), last_section1.get_begin(), first_section2.get_end()))};
-    long long new_start = section1.get_begin();
-    if (section1.get_intervals().size() > 1)
-      new_start = section1.get_intervals()[section1.get_intervals().size() - 2].get_end();
-    MultiProbs middle_probs =
-        Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_section2.get_end(), markov_chain);
+  if (overflows) {
     new_normal = joint_logprobs(joint_logprobs(probs1.get_except_last(), middle_probs), probs2.get_except_first());
   }
 
-  return {};
+  MultiProbs new_except_first = joint_logprobs(probs1.get_except_first(), probs2.get_normal());
+  if (overflows) {
+    new_except_first =
+        joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs), probs2.get_except_first());
+  }
+
+  MultiProbs new_except_last = joint_logprobs(probs1.get_normal(), probs2.get_except_last());
+  if (overflows) {
+    new_except_last =
+        joint_logprobs(joint_logprobs(probs1.get_except_last(), middle_probs), probs2.get_except_first_and_last());
+  }
+
+  MultiProbs new_except_first_and_last = joint_logprobs(probs1.get_except_first(), probs2.get_except_last());
+  if (overflows) {
+    new_except_first_and_last = joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs),
+                                               probs2.get_except_first_and_last());
+  }
+
+  std::vector<Interval> new_intervals = ints1;
+  if (!overflows) {
+    new_intervals.insert(new_intervals.end(), ints2.begin(), ints2.end());
+  } else {
+    new_intervals.pop_back();
+    new_intervals.push_back(ref_intervals[0]);
+    new_intervals.insert(new_intervals.end(), ints2.begin() + 1, ints2.end());
+  }
+
+  Section merged_section(section1.get_chr_name(), section1.get_begin(), section2.get_end(),
+                         section1.get_first_interval_intersected(), section2.get_last_interval_intersected(),
+                         new_intervals);
+  SectionProbs merged_probs(new_normal, new_except_first, new_except_last, new_except_first_and_last);
+  merged_section.set_probs(merged_probs);
+
+  return merged_section;
 }
