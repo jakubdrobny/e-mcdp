@@ -1,4 +1,5 @@
 #include "Args/Args.hpp"
+#include "Enums/Enums.hpp"
 #include "Helpers/Helpers.hpp"
 #include "Logger/Logger.hpp"
 #include "Model/Model.hpp"
@@ -12,7 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
-#define RUN_TESTS 1
+#define RUN_TESTS 0
 
 Logger logger;
 
@@ -62,6 +63,11 @@ int main(int argc, char *argv[]) {
 
   ref_intervals = remove_empty_intervals(ref_intervals);
   query_intervals = remove_empty_intervals(query_intervals);
+
+  if (args.statistic == Statistic::BASES) {
+    ref_intervals = split_intervals_into_ones(ref_intervals);
+    query_intervals = split_intervals_into_ones(query_intervals);
+  }
 
   logger.info("Number of reference intervals: " + std::to_string(ref_intervals.size()) + " (" +
               std::to_string(raw_ref_count) + " before merging)");

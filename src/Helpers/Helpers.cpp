@@ -982,3 +982,15 @@ bool compare_vectors_stl(const std::vector<long double> &a, const std::vector<lo
            return std::abs(x - y) < epsilon;
          });
 }
+
+std::vector<Interval> split_intervals_into_ones(const std::vector<Interval> &intervals) {
+  std::vector<Interval> new_intervals;
+
+  for (Interval interval : intervals) {
+    for (long long pos = interval.get_begin(); pos < interval.get_end(); pos++) {
+      new_intervals.push_back(Interval(interval.get_chr_name(), pos, pos + 1));
+    }
+  }
+
+  return new_intervals;
+}

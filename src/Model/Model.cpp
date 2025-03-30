@@ -47,13 +47,16 @@ long double Model::eval_pvalue(long long overlap_count) {
     query_intervals_by_chr[chr_sizes_idx] = Model::select_intervals_by_chr_name(query_intervals, query_idx, chr_name);
   }
 
-// sometimes turned off for debugging
-#pragma omp parallel for
+  // sometimes turned off for debugging
+  // #pragma omp parallel for
   for (size_t chr_sizes_idx = 0; chr_sizes_idx < chr_sizes.size(); chr_sizes_idx++) {
-    long long chr_size = chr_sizes[chr_sizes_idx].second;
-    MarkovChain markov_chain(chr_size, query_intervals_by_chr[chr_sizes_idx]);
-    std::vector<long double> probs =
-        prob_method(ref_intervals_by_chr[chr_sizes_idx], query_intervals_by_chr[chr_sizes_idx], markov_chain, chr_size);
+    std::vector<long double> probs(1);
+    if (!query_intervals_by_chr[chr_sizes_idx].empty()) {
+      long long chr_size = chr_sizes[chr_sizes_idx].second;
+      MarkovChain markov_chain(chr_size, query_intervals_by_chr[chr_sizes_idx]);
+      probs = prob_method(ref_intervals_by_chr[chr_sizes_idx], query_intervals_by_chr[chr_sizes_idx], markov_chain,
+                          chr_size);
+    }
     probs_by_chr[chr_sizes_idx] = probs;
   }
 

@@ -112,4 +112,6 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
 
 bool compare_vectors_stl(const std::vector<long double> &a, const std::vector<long double> &b,
                          long double epsilon = 1e-9);
+
+std::vector<Interval> split_intervals_into_ones(const std::vector<Interval> &intervals);
 #endif

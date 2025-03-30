@@ -88,6 +88,17 @@ void Args::parse_args(int argc, char *argv[]) {
       } else {
         log_failed_to_parse_args(flag);
       }
+    } else if (flag == "--statistic") {
+      if (i + 1 < argc) {
+        std::string statisticString = argv[++i];
+        if (!validate_enum(statisticToEnum, statisticString))
+          log_failed_to_parse_args(flag);
+
+        statistic = statisticToEnum.at(statisticString);
+        logger.info("Parsed --statistic " + statisticString);
+      } else {
+        log_failed_to_parse_args(flag);
+      }
     } else {
       log_invalid_arg(flag);
     }
@@ -103,6 +114,7 @@ void Args::debug_args() {
   logger.debug("query_intervals_file_path: " + query_intervals_file_path);
   logger.debug("chr_size_file_path: " + chr_size_file_path);
   logger.debug("method: " + method);
+  logger.debug("statistic: " + statisticToString.at(statistic));
   logger.debug("algorithm: " + algorithmToString.at(algorithm));
   logger.debug("windows.source: " + windows_source);
   logger.debug("windows.path: " + windows_path);

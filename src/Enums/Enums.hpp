@@ -5,12 +5,16 @@
 #include <string>
 
 enum class Algorithm { NAIVE, FAST };
+enum class Statistic { OVERLAPS, BASES };
 
 template <typename T> extern bool validate_enum(const std::map<std::string, T> &stringToEnum, const std::string &str) {
   return stringToEnum.count(str);
 }
 
 extern const std::map<std::string, Algorithm> algorithmToEnum;
+extern const std::map<std::string, Statistic> statisticToEnum;
+
 extern const std::map<Algorithm, std::string> algorithmToString;
+extern const std::map<Statistic, std::string> statisticToString;
 
 #endif // ENUM_H
