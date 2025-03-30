@@ -17,13 +17,17 @@ public:
   bool get_first_interval_intersected() const;
   bool get_last_interval_intersected() const;
   std::vector<Interval> get_intervals() const;
+  void set_intervals(const std::vector<Interval> &new_intervals);
   SectionProbs get_probs() const;
   void set_probs(const SectionProbs &new_probs);
+  long long get_overlap_count() const;
+  void set_overlap_count(long long new_overlap_count);
 
 private:
   bool first_interval_intersected, last_interval_intersected;
   std::vector<Interval> intervals;
   SectionProbs probs;
+  long long overlap_count;
 };
 
 #endif // INTERVAL_H

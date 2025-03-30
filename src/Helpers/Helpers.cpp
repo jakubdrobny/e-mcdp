@@ -744,12 +744,12 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   }
 
   std::sort(events.begin(), events.end(), [](const Event &e1, const Event &e2) {
-    if (e1.type == e2.type) {
-      if (e1.pos == e2.pos)
+    if (e1.pos == e2.pos) {
+      if (e1.type == e2.type)
         return e1.start < e2.start;
-      return e1.pos < e2.pos;
+      return e1.type < e2.type;
     }
-    return e1.type < e2.type;
+    return e1.pos < e2.pos;
   });
 
   std::vector<Interval> spans(windows.size());
@@ -871,8 +871,7 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
   if (overflows) {
     Interval last_section1 = ints1.back();
     Interval first_section2 = ints2.front();
-    std::vector<Interval> ref_intervals = {
-        (Interval(last_section1.get_chr_name(), last_section1.get_begin(), first_section2.get_end()))};
+    ref_intervals = {(Interval(last_section1.get_chr_name(), last_section1.get_begin(), first_section2.get_end()))};
     long long new_start = section1.get_begin();
     if (ints1.size() > 1)
       new_start = ints1[section1.get_intervals().size() - 2].get_end();

@@ -19,12 +19,14 @@ public:
   WindowResult(Interval window, long long overlap_count, std::vector<long double> probs);
   WindowResult(Interval window, long long overlap_count, MultiProbs multi_probs);
 
-  Interval get_window();
-  long long get_overlap_count();
-  std::vector<long double> get_probs();
-  MultiProbs get_multi_probs();
+  Interval get_window() const;
+  long long get_overlap_count() const;
+  std::vector<long double> get_probs() const;
+  MultiProbs get_multi_probs() const;
 
   bool operator==(const WindowResult &other) const;
 };
+
+std::ostream &operator<<(std::ostream &os, const WindowResult &result);
 
 #endif // WINDOWRESULT_H

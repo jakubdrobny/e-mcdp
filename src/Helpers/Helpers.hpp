@@ -4,7 +4,6 @@
 #include "../Args/Args.hpp"
 #include "../Interval/Interval.hpp"
 #include "../MarkovChain/MarkovChain.hpp"
-#include "../Results/SectionProbs.hpp"
 #include "../Results/WindowResult.hpp"
 #include "../Results/WindowSectionSplitResult.hpp"
 

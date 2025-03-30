@@ -3,6 +3,7 @@
 #include "../Interval/Section.hpp"
 #include "../Results/WindowResult.hpp"
 #include <algorithm>
+#include <iostream>
 #include <set>
 
 WindowModel::WindowModel() {}
@@ -228,21 +229,30 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   std::vector<Section> sections = windowSectionSplitResult.get_sections();
   std::vector<Interval> spans = windowSectionSplitResult.get_spans();
 
+  // 1.1 get query_intervals split for overlap couting
+  std::vector<Section> query_sections =
+      split_windows_into_non_overlapping_sections(windows, query_intervals).get_sections();
+
   // 2. load intervals into sections, will be fast since both are
   // non-overlapping
   std::vector<std::vector<Interval>> ref_intervals_by_section = get_windows_intervals<Section>(sections, ref_intervals),
                                      query_intervals_by_section =
                                          get_windows_intervals<Section>(sections, query_intervals);
-
   // 3. calculate transition matrices
   MarkovChain markov_chain(chr_size, query_intervals);
   // markov_chain.print();
 
-  // 4. calculature probs of each section
-  for (size_t section_idx = 0; section_idx < sections.size(); section_idx++) {
-    SectionProbs probs = eval_probs_single_section(ref_intervals_by_section[section_idx], sections[section_idx].begin,
-                                                   sections[section_idx].end, markov_chain);
-    sections[section_idx].set_probs(probs);
+  // 4. calculature probs and overlap of each section
+  for (size_t sections_idx = 0; sections_idx < sections.size(); sections_idx++) {
+    SectionProbs probs = eval_probs_single_section(ref_intervals_by_section[sections_idx], sections[sections_idx].begin,
+                                                   sections[sections_idx].end, markov_chain);
+    sections[sections_idx].set_probs(probs);
+    sections[sections_idx].set_intervals(ref_intervals_by_section[sections_idx]);
+
+    query_sections[sections_idx].set_intervals(query_intervals_by_section[sections_idx]);
+    long long current_overlap_count =
+        count_overlaps_single_chr(ref_intervals_by_section[sections_idx], query_sections[sections_idx].get_intervals());
+    sections[sections_idx].set_overlap_count(current_overlap_count);
   }
 
   // 5. merge section probs for each window
@@ -254,13 +264,36 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
     // merge probs for sections
     for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
-      section = join_sections(section, sections[sections_idx], markov_chain);
+      Section next_section = sections[sections_idx];
+
+      long long new_overlap_count = section.get_overlap_count() + next_section.get_overlap_count();
+      if (section.get_last_interval_intersected() && next_section.get_first_interval_intersected() &&
+          !query_sections[sections_idx - 1].get_intervals().empty() && !section.get_intervals().empty() &&
+          query_sections[sections_idx - 1].get_intervals().back().get_end() >
+              section.get_intervals().back().get_begin() &&
+          !query_sections[sections_idx].get_intervals().empty() && !next_section.get_intervals().empty() &&
+          query_sections[sections_idx].get_intervals().front().get_begin() <
+              next_section.get_intervals().front().get_end()) {
+        std::cout << "section.intervals:";
+        for (auto i : section.get_intervals())
+          std::cout << " " << i;
+        std::cout << "\n";
+        std::cout << "next_section.intervals:";
+        for (auto i : next_section.get_intervals())
+          std::cout << " " << i;
+        std::cout << "\n";
+        new_overlap_count--;
+      }
+
+      section = join_sections(section, next_section, markov_chain);
+      section.set_overlap_count(new_overlap_count);
     }
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =
         merge_multi_probs(section.get_probs().get_normal(), markov_chain);
-    probs_by_window[windows_idx] = WindowResult(windows[windows_idx], 01, cur_windows_single_probs);
+    probs_by_window[windows_idx] =
+        WindowResult(windows[windows_idx], section.get_overlap_count(), cur_windows_single_probs);
   }
 
   return probs_by_window;
