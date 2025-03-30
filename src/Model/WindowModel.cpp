@@ -3,7 +3,6 @@
 #include "../Interval/Section.hpp"
 #include "../Results/WindowResult.hpp"
 #include <algorithm>
-#include <iostream>
 #include <set>
 
 WindowModel::WindowModel() {}
@@ -225,13 +224,9 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
   // 1. create sections from (possibly) overlapping set of windows
   WindowSectionSplitResult windowSectionSplitResult =
-      split_windows_into_non_overlapping_sections(windows, ref_intervals);
+      split_windows_into_non_overlapping_sections(windows, ref_intervals, query_intervals);
   std::vector<Section> sections = windowSectionSplitResult.get_sections();
   std::vector<Interval> spans = windowSectionSplitResult.get_spans();
-
-  // 1.1 get query_intervals split for overlap couting
-  std::vector<Section> query_sections =
-      split_windows_into_non_overlapping_sections(windows, query_intervals).get_sections();
 
   // 2. load intervals into sections, will be fast since both are
   // non-overlapping
@@ -247,11 +242,11 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
     SectionProbs probs = eval_probs_single_section(ref_intervals_by_section[sections_idx], sections[sections_idx].begin,
                                                    sections[sections_idx].end, markov_chain);
     sections[sections_idx].set_probs(probs);
-    sections[sections_idx].set_intervals(ref_intervals_by_section[sections_idx]);
+    sections[sections_idx].set_ref_intervals(ref_intervals_by_section[sections_idx]);
+    sections[sections_idx].set_query_intervals(query_intervals_by_section[sections_idx]);
 
-    query_sections[sections_idx].set_intervals(query_intervals_by_section[sections_idx]);
     long long current_overlap_count =
-        count_overlaps_single_chr(ref_intervals_by_section[sections_idx], query_sections[sections_idx].get_intervals());
+        count_overlaps_single_chr(ref_intervals_by_section[sections_idx], query_intervals_by_section[sections_idx]);
     sections[sections_idx].set_overlap_count(current_overlap_count);
   }
 
@@ -266,27 +261,7 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
     for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
       Section next_section = sections[sections_idx];
 
-      long long new_overlap_count = section.get_overlap_count() + next_section.get_overlap_count();
-      if (section.get_last_interval_intersected() && next_section.get_first_interval_intersected() &&
-          !query_sections[sections_idx - 1].get_intervals().empty() && !section.get_intervals().empty() &&
-          query_sections[sections_idx - 1].get_intervals().back().get_end() >
-              section.get_intervals().back().get_begin() &&
-          !query_sections[sections_idx].get_intervals().empty() && !next_section.get_intervals().empty() &&
-          query_sections[sections_idx].get_intervals().front().get_begin() <
-              next_section.get_intervals().front().get_end()) {
-        std::cout << "section.intervals:";
-        for (auto i : section.get_intervals())
-          std::cout << " " << i;
-        std::cout << "\n";
-        std::cout << "next_section.intervals:";
-        for (auto i : next_section.get_intervals())
-          std::cout << " " << i;
-        std::cout << "\n";
-        new_overlap_count--;
-      }
-
       section = join_sections(section, next_section, markov_chain);
-      section.set_overlap_count(new_overlap_count);
     }
 
     // merge the final 4 sets of probs for window into one

@@ -714,22 +714,24 @@ bool are_intervals_non_overlapping(const std::vector<Interval> &intervals) {
 }
 
 WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::vector<Interval> &windows,
-                                                                     const std::vector<Interval> &ref_intervals) {
+                                                                     const std::vector<Interval> &ref_intervals,
+                                                                     const std::vector<Interval> &query_intervals) {
   if (windows.empty()) {
     return {};
   }
 
   std::string chr_name = windows[0].chr_name;
 
-  const int INTERVAL = 0;
-  const int WINDOW = 1;
+  const int REF_INTERVAL = 0;
+  const int QUERY_INTERVAL = 1;
+  const int WINDOW = 2;
   struct Event {
     long long pos;
     bool start;
     size_t idx;
     int type;
   };
-  std::vector<Event> events(2 * windows.size() + 2 * ref_intervals.size());
+  std::vector<Event> events(2 * windows.size() + 2 * ref_intervals.size() + 2 * query_intervals.size());
   for (size_t idx = 0; idx < windows.size(); idx++) {
     Interval window = windows[idx];
     events[idx << 1] = {window.begin, 1, idx, WINDOW};
@@ -739,8 +741,15 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   size_t buf = 2 * windows.size();
   for (size_t idx = 0; idx < ref_intervals.size(); idx++) {
     Interval ref_interval = ref_intervals[idx];
-    events[buf + (idx << 1)] = {ref_interval.begin, 0, idx, INTERVAL};
-    events[buf + ((idx << 1) | 1)] = {ref_interval.end, 1, idx, INTERVAL};
+    events[buf + (idx << 1)] = {ref_interval.begin, 0, idx, REF_INTERVAL};
+    events[buf + ((idx << 1) | 1)] = {ref_interval.end, 1, idx, REF_INTERVAL};
+  }
+
+  buf += 2 * ref_intervals.size();
+  for (size_t idx = 0; idx < query_intervals.size(); idx++) {
+    Interval query_interval = query_intervals[idx];
+    events[buf + (idx << 1)] = {query_interval.begin, 0, idx, QUERY_INTERVAL};
+    events[buf + ((idx << 1) | 1)] = {query_interval.end, 1, idx, QUERY_INTERVAL};
   }
 
   std::sort(events.begin(), events.end(), [](const Event &e1, const Event &e2) {
@@ -756,30 +765,48 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   long long last_pos = -1, section_start = -1;
 
   std::vector<Section> sections;
-  std::set<Interval> currently_opened_intervals_by_start;
+  std::set<Interval> currently_opened_ref_intervals_by_start, currently_opened_query_intervals_by_start;
   auto interval_cmp_by_end = [](const Interval &i1, const Interval &i2) { return i1.end < i2.end; };
-  std::set<Interval, decltype(interval_cmp_by_end)> currently_opened_intervals_by_end(interval_cmp_by_end);
+  std::set<Interval, decltype(interval_cmp_by_end)> currently_opened_ref_intervals_by_end(interval_cmp_by_end),
+      currently_opened_query_intervals_by_end(interval_cmp_by_end);
   long long opened = 0;
   for (Event event : events) {
-    if (event.type == INTERVAL) {
+    if (event.type == REF_INTERVAL) {
       Interval current_ref_interval = ref_intervals[event.idx];
       if (event.start) {
-        currently_opened_intervals_by_start.insert(current_ref_interval);
-        currently_opened_intervals_by_end.insert(current_ref_interval);
+        currently_opened_ref_intervals_by_start.insert(current_ref_interval);
+        currently_opened_ref_intervals_by_end.insert(current_ref_interval);
       } else {
-        currently_opened_intervals_by_start.erase(current_ref_interval);
-        currently_opened_intervals_by_end.erase(current_ref_interval);
+        currently_opened_ref_intervals_by_start.erase(current_ref_interval);
+        currently_opened_ref_intervals_by_end.erase(current_ref_interval);
+      }
+    } else if (event.type == QUERY_INTERVAL) {
+      Interval current_query_interval = query_intervals[event.idx];
+      if (event.start) {
+        currently_opened_query_intervals_by_start.insert(current_query_interval);
+        currently_opened_query_intervals_by_end.insert(current_query_interval);
+      } else {
+        currently_opened_query_intervals_by_start.erase(current_query_interval);
+        currently_opened_query_intervals_by_end.erase(current_query_interval);
       }
     } else {
       if (opened > 0 && section_start != -1 && event.pos != last_pos) {
         long long section_end = event.pos;
-        long long soonest_interval_start = currently_opened_intervals_by_start.empty()
-                                               ? section_start
-                                               : currently_opened_intervals_by_start.begin()->begin;
-        long long latest_interval_end =
-            currently_opened_intervals_by_end.empty() ? section_end : currently_opened_intervals_by_end.rbegin()->end;
-        sections.push_back(Section(chr_name, section_start, section_end, soonest_interval_start < section_start,
-                                   section_end < latest_interval_end));
+        long long soonest_ref_interval_start = currently_opened_ref_intervals_by_start.empty()
+                                                   ? section_start
+                                                   : currently_opened_ref_intervals_by_start.begin()->get_begin();
+        long long latest_ref_interval_end = currently_opened_ref_intervals_by_end.empty()
+                                                ? section_end
+                                                : currently_opened_ref_intervals_by_end.rbegin()->get_end();
+        long long soonest_query_interval_start = currently_opened_query_intervals_by_start.empty()
+                                                     ? section_start
+                                                     : currently_opened_query_intervals_by_start.begin()->get_begin();
+        long long latest_query_interval_end = currently_opened_query_intervals_by_end.empty()
+                                                  ? section_end
+                                                  : currently_opened_query_intervals_by_end.rbegin()->get_end();
+        sections.push_back(Section(chr_name, section_start, section_end, soonest_ref_interval_start < section_start,
+                                   section_end < latest_ref_interval_end, soonest_query_interval_start < section_start,
+                                   section_end < latest_query_interval_end));
       }
       if (event.pos != last_pos) {
         section_start = event.pos;
@@ -862,60 +889,90 @@ void print_multiprobs(const MultiProbs &probs) {
 
 Section join_sections(const Section &section1, const Section &section2, const MarkovChain &markov_chain) {
   SectionProbs probs1 = section1.get_probs(), probs2 = section2.get_probs();
-  std::vector<Interval> ints1 = section1.get_intervals(), ints2 = section2.get_intervals();
+  std::vector<Interval> ref_ints1 = section1.get_ref_intervals(), ref_ints2 = section2.get_ref_intervals();
+  std::vector<Interval> query_ints1 = section1.get_query_intervals(), query_ints2 = section2.get_query_intervals();
 
-  bool overflows = !ints1.empty() && section1.get_last_interval_intersected() && !ints2.empty() &&
-                   section2.get_first_interval_intersected();
+  bool ref_overflows = !ref_ints1.empty() && section1.get_last_ref_interval_intersected() && !ref_ints2.empty() &&
+                       section2.get_first_ref_interval_intersected();
+  bool query_overflows = !query_ints1.empty() && section1.get_last_query_interval_intersected() &&
+                         !query_ints2.empty() && section2.get_first_query_interval_intersected();
   MultiProbs middle_probs;
-  std::vector<Interval> ref_intervals;
-  if (overflows) {
-    Interval last_section1 = ints1.back();
-    Interval first_section2 = ints2.front();
-    ref_intervals = {(Interval(last_section1.get_chr_name(), last_section1.get_begin(), first_section2.get_end()))};
+  std::vector<Interval> ref_intervals, query_intervals;
+  if (ref_overflows) {
+    Interval last_ref_section1 = ref_ints1.back();
+    Interval first_ref_section2 = ref_ints2.front();
+    ref_intervals = {
+        Interval(last_ref_section1.get_chr_name(), last_ref_section1.get_begin(), first_ref_section2.get_end())};
     long long new_start = section1.get_begin();
-    if (ints1.size() > 1)
-      new_start = ints1[section1.get_intervals().size() - 2].get_end();
+    if (ref_ints1.size() > 1)
+      new_start = ref_ints1[ref_ints1.size() - 2].get_end();
     middle_probs =
-        Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_section2.get_end(), markov_chain);
+        Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_ref_section2.get_end(), markov_chain);
+  }
+
+  if (query_overflows) {
+    Interval last_query_section1 = query_ints1.back();
+    Interval first_query_section2 = query_ints2.front();
+    ref_intervals = {
+        Interval(last_query_section1.get_chr_name(), last_query_section1.get_begin(), first_query_section2.get_end())};
   }
 
   MultiProbs new_normal = joint_logprobs(probs1.get_normal(), probs2.get_normal());
-  if (overflows) {
+  if (ref_overflows) {
     new_normal = joint_logprobs(joint_logprobs(probs1.get_except_last(), middle_probs), probs2.get_except_first());
   }
 
   MultiProbs new_except_first = joint_logprobs(probs1.get_except_first(), probs2.get_normal());
-  if (overflows) {
+  if (ref_overflows) {
     new_except_first =
         joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs), probs2.get_except_first());
   }
 
   MultiProbs new_except_last = joint_logprobs(probs1.get_normal(), probs2.get_except_last());
-  if (overflows) {
+  if (ref_overflows) {
     new_except_last =
         joint_logprobs(joint_logprobs(probs1.get_except_last(), middle_probs), probs2.get_except_first_and_last());
   }
 
   MultiProbs new_except_first_and_last = joint_logprobs(probs1.get_except_first(), probs2.get_except_last());
-  if (overflows) {
+  if (ref_overflows) {
     new_except_first_and_last = joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs),
                                                probs2.get_except_first_and_last());
   }
 
-  std::vector<Interval> new_intervals = ints1;
-  if (!overflows) {
-    new_intervals.insert(new_intervals.end(), ints2.begin(), ints2.end());
+  long long new_overlap_count = section1.get_overlap_count() + section2.get_overlap_count();
+  if (ref_overflows && !query_ints1.empty() && !ref_ints1.empty() &&
+      query_ints1.back().get_end() > ref_ints1.back().get_begin() && !query_ints2.empty() && !ref_ints2.empty() &&
+      query_ints2.front().get_begin() < ref_ints2.front().get_end()) {
+    new_overlap_count--;
+  }
+
+  std::vector<Interval> new_ref_intervals = ref_ints1;
+  std::vector<Interval> new_query_intervals = query_ints1;
+  if (!ref_overflows) {
+    new_ref_intervals.insert(new_ref_intervals.end(), ref_ints2.begin(), ref_ints2.end());
   } else {
-    new_intervals.pop_back();
-    new_intervals.push_back(ref_intervals[0]);
-    new_intervals.insert(new_intervals.end(), ints2.begin() + (!ints2.empty()), ints2.end());
+    new_ref_intervals.pop_back();
+    new_ref_intervals.push_back(ref_intervals[0]);
+    new_ref_intervals.insert(new_ref_intervals.end(), ref_ints2.begin() + (!ref_ints2.empty()), ref_ints2.end());
+  }
+
+  if (!query_overflows) {
+    new_query_intervals.insert(new_query_intervals.end(), query_ints2.begin(), query_ints2.end());
+  } else {
+    new_query_intervals.pop_back();
+    new_query_intervals.push_back(query_intervals[0]);
+    new_query_intervals.insert(new_query_intervals.end(), query_ints2.begin() + (!query_ints2.empty()),
+                               query_ints2.end());
   }
 
   Section merged_section(section1.get_chr_name(), section1.get_begin(), section2.get_end(),
-                         section1.get_first_interval_intersected(), section2.get_last_interval_intersected(),
-                         new_intervals);
+                         section1.get_first_ref_interval_intersected(), section2.get_last_ref_interval_intersected(),
+                         section1.get_first_query_interval_intersected(),
+                         section2.get_last_query_interval_intersected(), new_ref_intervals, new_query_intervals);
   SectionProbs merged_probs(new_normal, new_except_first, new_except_last, new_except_first_and_last);
   merged_section.set_probs(merged_probs);
+  merged_section.set_overlap_count(new_overlap_count);
 
   return merged_section;
 }
