@@ -270,18 +270,20 @@ SectionProbs WindowModel::eval_probs_single_section(const std::vector<Interval> 
                                                     long long section_end, const MarkovChain &markov_chain) {
   MultiProbs probs_normal = eval_probs_single_chr_direct_new(ref_intervals, section_start, section_end, markov_chain);
 
-  std::vector<Interval> ref_intervals_except_last(ref_intervals.begin(), ref_intervals.end() - 1);
+  std::vector<Interval> ref_intervals_except_last(ref_intervals.begin(),
+                                                  ref_intervals.end() - (!ref_intervals.empty()));
   long long new_section_end = ref_intervals_except_last.empty() ? section_start : ref_intervals_except_last.back().end;
   MultiProbs probs_except_last =
       eval_probs_single_chr_direct_new(ref_intervals_except_last, section_start, new_section_end, markov_chain);
 
-  std::vector<Interval> ref_intervals_except_first(ref_intervals.begin() + 1, ref_intervals.end());
+  std::vector<Interval> ref_intervals_except_first(ref_intervals.begin() + (!ref_intervals.empty()),
+                                                   ref_intervals.end());
   long long new_section_start = ref_intervals.empty() ? section_start : ref_intervals[0].end;
   MultiProbs probs_except_first =
       eval_probs_single_chr_direct_new(ref_intervals_except_first, new_section_start, section_end, markov_chain);
 
-  std::vector<Interval> ref_intervals_except_first_and_last(ref_intervals_except_first.begin(),
-                                                            ref_intervals_except_first.end() - 1);
+  std::vector<Interval> ref_intervals_except_first_and_last(
+      ref_intervals_except_first.begin(), ref_intervals_except_first.end() - (!ref_intervals_except_first.empty()));
   MultiProbs probs_except_first_and_last = eval_probs_single_chr_direct_new(
       ref_intervals_except_first_and_last, new_section_start, new_section_end, markov_chain);
 

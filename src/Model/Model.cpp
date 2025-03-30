@@ -165,13 +165,18 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
   return probs;
 }
 
-template <class T> using SectionProbs = std::vector<std::vector<T>>;
-
-std::vector<std::vector<std::vector<long double>>>
+std::array<std::array<std::vector<long double>, 2>, 2>
 Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_intervals, long long window_start,
                                         long long window_end, const MarkovChain &markov_chain) {
   if (ref_intervals.empty())
-    return {{{0.}, {0.}}, {{0.}, {0.}}};
+    return {{{{
+                 {0.},
+                 {0.},
+             }},
+             {{
+                 {0.},
+                 {0.},
+             }}}};
 
   int m = ref_intervals.size();
   std::vector<Interval> ref_intervals_augmented;
@@ -179,7 +184,7 @@ Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_interva
       Interval(ref_intervals[0].chr_name, std::numeric_limits<long long>::min(), window_start));
   extend(ref_intervals_augmented, ref_intervals);
 
-  SectionProbs<std::vector<long double>> probs(2, std::vector<std::vector<long double>>(2));
+  std::array<std::array<std::vector<long double>, 2>, 2> probs{};
   for (int start_state : {0, 1}) {
     std::vector<std::array<long double, 2>> prev_line(m + 1, std::array<long double, 2>{}),
         last_col(m + 1, std::array<long double, 2>{});
@@ -249,7 +254,8 @@ Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_interva
       prev_line = next_line;
     }
 
-    std::vector<std::vector<long double>> cur_probs(2, std::vector<long double>(m + 1));
+    std::array<std::vector<long double>, 2> cur_probs = {std::vector<long double>(m + 1),
+                                                         std::vector<long double>(m + 1)};
     for (int k = 0; k <= m; k++) {
       // length of gap from end of last interval to end of window
       long long trailing_gap = window_end - ref_intervals_augmented[m].end;

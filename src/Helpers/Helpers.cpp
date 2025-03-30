@@ -492,6 +492,20 @@ std::vector<long double> joint_logprobs(const std::vector<std::vector<long doubl
   return next_row;
 }
 
+bool empty_probs(const MultiProbs &probs) {
+  size_t k = probs[0][0].size();
+  if (k == 1) {
+    bool empty = true;
+    for (int i : {0, 1})
+      for (int j : {0, 1})
+        empty = empty & (std::abs(probs[i][j][0]) < 1e-9);
+    if (empty) {
+      return true;
+    }
+  }
+  return false;
+}
+
 MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
   if (probs1.empty() || probs2.empty()) {
     logger.error("multi probs should not be empty");
@@ -516,7 +530,15 @@ MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
     }
   }
 
-  MultiProbs res(2, std::vector<std::vector<long double>>(2));
+  if (empty_probs(probs1)) {
+    return probs2;
+  }
+
+  if (empty_probs(probs2)) {
+    return probs1;
+  }
+
+  MultiProbs res{};
 
   for (int i : {0, 1}) {
     for (int j : {0, 1}) {
@@ -737,7 +759,6 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   std::set<Interval> currently_opened_intervals_by_start;
   auto interval_cmp_by_end = [](const Interval &i1, const Interval &i2) { return i1.end < i2.end; };
   std::set<Interval, decltype(interval_cmp_by_end)> currently_opened_intervals_by_end(interval_cmp_by_end);
-
   long long opened = 0;
   for (Event event : events) {
     if (event.type == INTERVAL) {
@@ -749,30 +770,30 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
         currently_opened_intervals_by_start.erase(current_ref_interval);
         currently_opened_intervals_by_end.erase(current_ref_interval);
       }
-    }
-
-    if (opened > 0 && section_start != -1 && event.pos != last_pos) {
-      long long section_end = event.pos;
-      long long soonest_interval_start = currently_opened_intervals_by_start.empty()
-                                             ? section_start
-                                             : currently_opened_intervals_by_start.begin()->begin;
-      long long latest_interval_end =
-          currently_opened_intervals_by_end.empty() ? section_end : currently_opened_intervals_by_end.rbegin()->end;
-      sections.push_back(Section(chr_name, section_start, section_end, soonest_interval_start < section_start,
-                                 section_end < latest_interval_end));
-    }
-    if (event.pos != last_pos) {
-      section_start = event.pos;
-    }
-    last_pos = event.pos;
-
-    if (event.start) {
-      opened++;
-      spans[event.idx].begin = sections.size();
     } else {
-      opened--;
-      spans[event.idx].chr_name = chr_name;
-      spans[event.idx].end = sections.size();
+      if (opened > 0 && section_start != -1 && event.pos != last_pos) {
+        long long section_end = event.pos;
+        long long soonest_interval_start = currently_opened_intervals_by_start.empty()
+                                               ? section_start
+                                               : currently_opened_intervals_by_start.begin()->begin;
+        long long latest_interval_end =
+            currently_opened_intervals_by_end.empty() ? section_end : currently_opened_intervals_by_end.rbegin()->end;
+        sections.push_back(Section(chr_name, section_start, section_end, soonest_interval_start < section_start,
+                                   section_end < latest_interval_end));
+      }
+      if (event.pos != last_pos) {
+        section_start = event.pos;
+      }
+      last_pos = event.pos;
+
+      if (event.start) {
+        opened++;
+        spans[event.idx].begin = sections.size();
+      } else {
+        opened--;
+        spans[event.idx].chr_name = chr_name;
+        spans[event.idx].end = sections.size();
+      }
     }
   }
 
@@ -801,7 +822,7 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
     bool empty = true;
     for (int i : {0, 1})
       for (int j : {0, 1})
-        empty = empty & (probs[i][j][0] == 0);
+        empty = empty & (std::abs(probs[i][j][0]) < 1e-9);
     if (empty) {
       return res;
     }
@@ -816,8 +837,8 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
   StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
 
   for (size_t idx = 0; idx < k; idx++) {
-    res[idx] = logsumexp(
-        {log(stationary_distribution[0]) + probs[0][0][idx], log(stationary_distribution[1]) + probs[1][0][idx]});
+    res[idx] = logsumexp({std::abs(probs[0][0][idx]) < 1e-9 ? 0 : log(stationary_distribution[0]) + probs[0][0][idx],
+                          std::abs(probs[1][0][idx]) < 1e-9 ? 0 : log(stationary_distribution[1]) + probs[1][0][idx]});
   }
 
   return res;
@@ -842,18 +863,22 @@ void print_multiprobs(const MultiProbs &probs) {
 Section join_sections(const Section &section1, const Section &section2, const MarkovChain &markov_chain) {
   SectionProbs probs1 = section1.get_probs(), probs2 = section2.get_probs();
   std::vector<Interval> ints1 = section1.get_intervals(), ints2 = section2.get_intervals();
+
   bool overflows = !ints1.empty() && section1.get_last_interval_intersected() && !ints2.empty() &&
                    section2.get_first_interval_intersected();
-
-  Interval last_section1 = ints1.back();
-  Interval first_section2 = ints2.front();
-  std::vector<Interval> ref_intervals = {
-      (Interval(last_section1.get_chr_name(), last_section1.get_begin(), first_section2.get_end()))};
-  long long new_start = section1.get_begin();
-  if (section1.get_intervals().size() > 1)
-    new_start = section1.get_intervals()[section1.get_intervals().size() - 2].get_end();
-  MultiProbs middle_probs =
-      Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_section2.get_end(), markov_chain);
+  MultiProbs middle_probs;
+  std::vector<Interval> ref_intervals;
+  if (overflows) {
+    Interval last_section1 = ints1.back();
+    Interval first_section2 = ints2.front();
+    std::vector<Interval> ref_intervals = {
+        (Interval(last_section1.get_chr_name(), last_section1.get_begin(), first_section2.get_end()))};
+    long long new_start = section1.get_begin();
+    if (ints1.size() > 1)
+      new_start = ints1[section1.get_intervals().size() - 2].get_end();
+    middle_probs =
+        Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_section2.get_end(), markov_chain);
+  }
 
   MultiProbs new_normal = joint_logprobs(probs1.get_normal(), probs2.get_normal());
   if (overflows) {
@@ -884,7 +909,7 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
   } else {
     new_intervals.pop_back();
     new_intervals.push_back(ref_intervals[0]);
-    new_intervals.insert(new_intervals.end(), ints2.begin() + 1, ints2.end());
+    new_intervals.insert(new_intervals.end(), ints2.begin() + (!ints2.empty()), ints2.end());
   }
 
   Section merged_section(section1.get_chr_name(), section1.get_begin(), section2.get_end(),
@@ -894,4 +919,10 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
   merged_section.set_probs(merged_probs);
 
   return merged_section;
+}
+
+bool compare_vectors_stl(const std::vector<long double> &a, const std::vector<long double> &b, long double epsilon) {
+  return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(), [epsilon](long double x, long double y) {
+           return std::abs(x - y) < epsilon;
+         });
 }

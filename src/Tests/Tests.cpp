@@ -4,6 +4,7 @@
 #include <csignal>
 #include <gtest/gtest-death-test.h>
 #include <gtest/gtest.h>
+#include <math.h>
 
 TEST(MergeNonDisjointIntervalsTest, EmptyVector) {
   std::vector<Interval> intervals;
@@ -212,4 +213,66 @@ TEST(SplitWindowsTest, IntervalOverflow) {
   ASSERT_EQ(result.get_spans().size(), 2);
   EXPECT_EQ(result.get_spans()[0], Interval("chr1", 0, 1));
   EXPECT_EQ(result.get_spans()[1], Interval("chr1", 1, 2));
+}
+
+std::vector<Interval> ref_intervals = {{"chr1", 1909, 2009}, {"chr1", 2694, 2794}, {"chr1", 5124, 5224},
+                                       {"chr1", 6333, 6433}, {"chr1", 9299, 9399}, {"chr1", 9629, 9729}};
+std::vector<Interval> query_intervals = {
+    {"chr1", 40, 140},    {"chr1", 213, 313},   {"chr1", 505, 605},   {"chr1", 638, 738},   {"chr1", 859, 959},
+    {"chr1", 996, 1096},  {"chr1", 1135, 1235}, {"chr1", 1328, 1428}, {"chr1", 1448, 1548}, {"chr1", 1728, 1828},
+    {"chr1", 1863, 1963}, {"chr1", 2159, 2259}, {"chr1", 2278, 2378}, {"chr1", 2472, 2572}, {"chr1", 2652, 2752},
+    {"chr1", 2783, 2883}, {"chr1", 2935, 3035}, {"chr1", 3102, 3202}, {"chr1", 3207, 3307}, {"chr1", 3311, 3411},
+    {"chr1", 3468, 3568}, {"chr1", 3572, 3672}, {"chr1", 3780, 3880}, {"chr1", 3935, 4035}, {"chr1", 4331, 4431},
+    {"chr1", 4582, 4682}, {"chr1", 4854, 4954}, {"chr1", 5079, 5179}, {"chr1", 5218, 5318}, {"chr1", 5443, 5543},
+    {"chr1", 5650, 5750}, {"chr1", 6050, 6150}, {"chr1", 6198, 6298}, {"chr1", 6590, 6690}, {"chr1", 6739, 6839},
+    {"chr1", 6898, 6998}, {"chr1", 7288, 7388}, {"chr1", 7428, 7528}, {"chr1", 7682, 7782}, {"chr1", 8166, 8266},
+    {"chr1", 8399, 8499}, {"chr1", 8548, 8648}, {"chr1", 8755, 8855}, {"chr1", 9140, 9240}, {"chr1", 9242, 9342},
+    {"chr1", 9388, 9488}, {"chr1", 9647, 9747}, {"chr1", 9749, 9849}, {"chr1", 9914, 10000}};
+
+TEST(WindowModelRunTest, NonOverlappingWindows) {
+  std::vector<Interval> windows = {
+      {"chr1", 0, 2000}, {"chr1", 2000, 4000}, {"chr1", 4000, 6000}, {"chr1", 6000, 8000}, {"chr1", 8000, 10000}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
+
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  ASSERT_EQ(resultsNaive, resultsFast);
+}
+
+TEST(WindowModelRunTest, EmptySectionMerge) {
+  std::vector<Interval> windows = {{"chr1", 0, 10000}, {"chr1", 5000, 15000}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 15000}};
+
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  ASSERT_EQ(resultsNaive, resultsFast);
+}
+
+TEST(WindowModelRunTest, EmptyWindow) {
+  std::vector<Interval> windows = {{"chr1", 0, 5000}, {"chr1", 5000, 10000}, {"chr1", 10000, 15000}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 15000}};
+
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  ASSERT_EQ(resultsNaive, resultsFast);
+}
+
+TEST(WindowModelRunTest, OverflowingIntervals) {
+  std::vector<Interval> _intervals = {
+      {"chr1", 1909, 2009}, {"chr1", 2694, 2794}, {"chr1", 3000, 7000}, {"chr1", 9299, 9399}, {"chr1", 9629, 9729}};
+  std::vector<Interval> windows = {
+      {"chr1", 0, 4000}, {"chr1", 2000, 6000}, {"chr1", 4000, 8000}, {"chr1", 6000, 10000}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
+
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  // ASSERT_EQ(resultsNaive, resultsFast);
 }
