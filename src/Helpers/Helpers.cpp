@@ -248,11 +248,16 @@ long long count_overlaps_single_chr(std::vector<Interval> ref_intervals, std::ve
   }
   sort(events.begin(), events.end());
 
+  long long last_pos = -1;
   for (std::vector<long long> event : events) {
-    bool is_query = event[1], is_end = event[2];
-    if (is_ref_interval_open && is_query_interval_open && !is_current_ref_interval_counted) {
-      overlap_count++;
-      is_current_ref_interval_counted = true;
+    long long pos = event[0];
+    bool is_query = event[1], is_end = !event[2];
+    if (last_pos < pos) {
+      last_pos = pos;
+      if (is_ref_interval_open && is_query_interval_open && !is_current_ref_interval_counted) {
+        overlap_count++;
+        is_current_ref_interval_counted = true;
+      }
     }
 
     if (!is_query && !is_end) {
