@@ -39,9 +39,17 @@ public:
                                                                const std::vector<Interval> &windows_query_intervals,
                                                                const std::pair<std::string, long long> chr_size_entry);
 
+  std::vector<WindowResult> probs_by_window_single_chr_smarter_new(
+      const std::vector<Interval> &windows, const std::vector<Interval> &ref_intervals,
+      const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry);
+
 private:
   SectionProbs eval_probs_single_section(const std::vector<Interval> &ref_intervals, long long section_start,
                                          long long section_end, const MarkovChain &markov_chain);
+
+  SectionProbs eval_probs_single_section_new(const Section &section, const MarkovChain &markov_chain);
+
+  void correct_ends(Section &section, const MarkovChain &markov_chain);
 };
 
 #endif // WINDOWMODEL_H

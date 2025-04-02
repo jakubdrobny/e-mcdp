@@ -271,8 +271,8 @@ TEST(WindowModelRunTest, OverflowingIntervals) {
   ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
 
   std::vector<WindowResult> resultsNaive =
-      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
   std::vector<WindowResult> resultsFast =
-      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
-  // ASSERT_EQ(resultsNaive, resultsFast);
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  ASSERT_EQ(resultsNaive, resultsFast);
 }

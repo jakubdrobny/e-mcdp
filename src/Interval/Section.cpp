@@ -1,4 +1,5 @@
 #include "Section.hpp"
+#include "../Helpers/Helpers.hpp"
 #include <vector>
 
 Section::Section(const std::string &chr_name, const long long &begin, const long long &end,
@@ -46,3 +47,20 @@ void Section::set_probs(const SectionProbs &new_probs) { this->probs = new_probs
 long long Section::get_overlap_count() const { return this->overlap_count; }
 
 void Section::set_overlap_count(long long new_overlap_count) { this->overlap_count = new_overlap_count; }
+
+std::ostream &operator<<(std::ostream &os, const Section &section) {
+  os << section.get_chr_name() + ": [" + std::to_string(section.get_begin()) + ", " +
+            std::to_string(section.get_end()) + ")"
+     << "\n";
+  os << "overlap_count: " << section.get_overlap_count() << "\n";
+  os << "first/last_ref_overflow: " << section.get_first_ref_interval_intersected() << " "
+     << section.get_last_ref_interval_intersected() << "\n";
+  os << to_string(section.get_ref_intervals()) << "\n";
+  os << "first/last_query_overflow: " << section.get_first_query_interval_intersected() << " "
+     << section.get_last_query_interval_intersected() << "\n";
+  os << "section_probs: " << to_string(section.get_probs().get_normal()) << " "
+     << to_string(section.get_probs().get_except_first()) << " " << to_string(section.get_probs().get_except_last())
+     << " " << to_string(section.get_probs().get_except_first_and_last()) << "\n";
+
+  return os;
+}

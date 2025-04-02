@@ -88,8 +88,14 @@ std::array<std::array<long double, 2>, 2> subtract_matrices(const std::array<std
 std::vector<long double> matrix_to_vector(const std::vector<std::vector<long double>> &mat);
 
 std::string to_string(const std::vector<std::vector<long double>> &matrix);
+
 std::string to_string(const std::vector<long double> &vec);
+
 std::string to_string(const long double &val);
+
+std::string to_string(const std::vector<Interval> &vec);
+
+std::string to_string(const MultiProbs &multi_probs);
 
 std::vector<Interval> load_windows(Args &args, std::unordered_map<std::string, long long> &chr_sizes);
 
@@ -109,6 +115,7 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
 void print_multiprobs(const MultiProbs &probs);
 
 Section join_sections(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
+Section join_sections_new(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
 
 bool compare_vectors_stl(const std::vector<long double> &a, const std::vector<long double> &b,
                          long double epsilon = 1e-9);

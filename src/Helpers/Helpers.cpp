@@ -692,6 +692,32 @@ std::string to_string(const std::vector<long double> &vec) {
   return oss.str();
 }
 
+std::string to_string(const std::vector<Interval> &vec) {
+  std::ostringstream oss;
+  oss << "[";
+
+  for (size_t i = 0; i < vec.size(); ++i) {
+    if (i > 0)
+      oss << ", ";
+    oss << vec[i];
+  }
+
+  oss << "]";
+  return oss.str();
+}
+
+std::string to_string(const MultiProbs &multi_probs) {
+  std::ostringstream oss;
+
+  for (int i : {0, 1}) {
+    for (int j : {0, 1}) {
+      oss << "(" << i << "," << j << "): " << to_string(multi_probs[i][j]) << "\n";
+    }
+  }
+
+  return oss.str();
+}
+
 std::string to_string(const long double &val) {
   std::ostringstream oss;
   oss << std::fixed << std::setprecision(30) << val;
@@ -975,6 +1001,10 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
   merged_section.set_probs(merged_probs);
   merged_section.set_overlap_count(new_overlap_count);
 
+  std::cout << section1 << "\n";
+  std::cout << section2 << "\n";
+  std::cout << merged_section << "\n";
+
   return merged_section;
 }
 
@@ -994,4 +1024,77 @@ std::vector<Interval> split_intervals_into_ones(const std::vector<Interval> &int
   }
 
   return new_intervals;
+}
+
+Section join_sections_new(const Section &section1, const Section &section2, const MarkovChain &markov_chain) {
+  SectionProbs probs1 = section1.get_probs(), probs2 = section2.get_probs();
+  std::vector<Interval> ref_ints1 = section1.get_ref_intervals(), ref_ints2 = section2.get_ref_intervals();
+  std::vector<Interval> query_ints1 = section1.get_query_intervals(), query_ints2 = section2.get_query_intervals();
+
+  bool ref_overflows = !ref_ints1.empty() && section1.get_last_ref_interval_intersected() && !ref_ints2.empty() &&
+                       section2.get_first_ref_interval_intersected();
+  bool query_overflows = !query_ints1.empty() && section1.get_last_query_interval_intersected() &&
+                         !query_ints2.empty() && section2.get_first_query_interval_intersected();
+  MultiProbs middle_probs;
+  std::vector<Interval> ref_intervals, query_intervals;
+  if (ref_overflows) {
+    Interval last_ref_section1 = ref_ints1.back();
+    Interval first_ref_section2 = ref_ints2.front();
+    ref_intervals = {
+        Interval(last_ref_section1.get_chr_name(), last_ref_section1.get_begin(), first_ref_section2.get_end())};
+    long long new_start = section1.get_begin();
+    if (ref_ints1.size() > 1)
+      new_start = ref_ints1[ref_ints1.size() - 2].get_end();
+    middle_probs =
+        Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_ref_section2.get_end(), markov_chain);
+  }
+
+  if (query_overflows) {
+    Interval last_query_section1 = query_ints1.back();
+    Interval first_query_section2 = query_ints2.front();
+    ref_intervals = {
+        Interval(last_query_section1.get_chr_name(), last_query_section1.get_begin(), first_query_section2.get_end())};
+  }
+
+  MultiProbs new_probs = joint_logprobs(probs1.get_except_first_and_last(), probs2.get_except_first_and_last());
+  if (ref_overflows) {
+    new_probs = joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs),
+                               probs2.get_except_first_and_last());
+  }
+
+  long long new_overlap_count = section1.get_overlap_count() + section2.get_overlap_count();
+  if (ref_overflows && !query_ints1.empty() && !ref_ints1.empty() &&
+      query_ints1.back().get_end() > ref_ints1.back().get_begin() && !query_ints2.empty() && !ref_ints2.empty() &&
+      query_ints2.front().get_begin() < ref_ints2.front().get_end()) {
+    new_overlap_count--;
+  }
+
+  std::vector<Interval> new_ref_intervals = ref_ints1;
+  std::vector<Interval> new_query_intervals = query_ints1;
+  if (!ref_overflows) {
+    new_ref_intervals.insert(new_ref_intervals.end(), ref_ints2.begin(), ref_ints2.end());
+  } else {
+    new_ref_intervals.pop_back();
+    new_ref_intervals.push_back(ref_intervals[0]);
+    new_ref_intervals.insert(new_ref_intervals.end(), ref_ints2.begin() + (!ref_ints2.empty()), ref_ints2.end());
+  }
+
+  if (!query_overflows) {
+    new_query_intervals.insert(new_query_intervals.end(), query_ints2.begin(), query_ints2.end());
+  } else {
+    new_query_intervals.pop_back();
+    new_query_intervals.push_back(query_intervals[0]);
+    new_query_intervals.insert(new_query_intervals.end(), query_ints2.begin() + (!query_ints2.empty()),
+                               query_ints2.end());
+  }
+
+  Section merged_section(section1.get_chr_name(), section1.get_begin(), section2.get_end(),
+                         section1.get_first_ref_interval_intersected(), section2.get_last_ref_interval_intersected(),
+                         section1.get_first_query_interval_intersected(),
+                         section2.get_last_query_interval_intersected(), new_ref_intervals, new_query_intervals);
+  SectionProbs merged_probs({}, {}, {}, new_probs);
+  merged_section.set_probs(merged_probs);
+  merged_section.set_overlap_count(new_overlap_count);
+
+  return merged_section;
 }
