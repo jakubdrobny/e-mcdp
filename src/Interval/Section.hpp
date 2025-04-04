@@ -38,4 +38,6 @@ private:
   long long overlap_count;
 };
 
+std::ostream &operator<<(std::ostream &os, const Section &section);
+
 #endif // INTERVAL_H

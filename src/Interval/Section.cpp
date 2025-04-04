@@ -1,5 +1,6 @@
 #include "Section.hpp"
 #include "../Helpers/Helpers.hpp"
+#include <iostream>
 #include <vector>
 
 Section::Section(const std::string &chr_name, const long long &begin, const long long &end,

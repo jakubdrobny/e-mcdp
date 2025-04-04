@@ -10,7 +10,6 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
-#include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -754,15 +753,15 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   const int WINDOW = 2;
   struct Event {
     long long pos;
-    bool start;
+    bool end;
     size_t idx;
     int type;
   };
   std::vector<Event> events(2 * windows.size() + 2 * ref_intervals.size() + 2 * query_intervals.size());
   for (size_t idx = 0; idx < windows.size(); idx++) {
     Interval window = windows[idx];
-    events[idx << 1] = {window.begin, 1, idx, WINDOW};
-    events[(idx << 1) | 1] = {window.end, 0, idx, WINDOW};
+    events[idx << 1] = {window.begin, 0, idx, WINDOW};
+    events[(idx << 1) | 1] = {window.end, 1, idx, WINDOW};
   }
 
   size_t buf = 2 * windows.size();
@@ -782,7 +781,7 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   std::sort(events.begin(), events.end(), [](const Event &e1, const Event &e2) {
     if (e1.pos == e2.pos) {
       if (e1.type == e2.type)
-        return e1.start < e2.start;
+        return e1.type != WINDOW ? e1.end < e2.end : e1.end > e2.end;
       return e1.type < e2.type;
     }
     return e1.pos < e2.pos;
@@ -792,61 +791,62 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   long long last_pos = -1, section_start = -1;
 
   std::vector<Section> sections;
-  std::set<Interval> currently_opened_ref_intervals_by_start, currently_opened_query_intervals_by_start;
-  auto interval_cmp_by_end = [](const Interval &i1, const Interval &i2) { return i1.end < i2.end; };
-  std::set<Interval, decltype(interval_cmp_by_end)> currently_opened_ref_intervals_by_end(interval_cmp_by_end),
-      currently_opened_query_intervals_by_end(interval_cmp_by_end);
+  Interval currently_opened_ref_interval, currently_opened_query_interval;
+  Interval start_ref_int, start_query_int;
   long long opened = 0;
   for (Event event : events) {
     if (event.type == REF_INTERVAL) {
       Interval current_ref_interval = ref_intervals[event.idx];
-      if (event.start) {
-        currently_opened_ref_intervals_by_start.insert(current_ref_interval);
-        currently_opened_ref_intervals_by_end.insert(current_ref_interval);
+      if (!event.end) {
+        currently_opened_ref_interval = current_ref_interval;
       } else {
-        currently_opened_ref_intervals_by_start.erase(current_ref_interval);
-        currently_opened_ref_intervals_by_end.erase(current_ref_interval);
+        currently_opened_ref_interval = Interval("", -1, -1);
       }
     } else if (event.type == QUERY_INTERVAL) {
       Interval current_query_interval = query_intervals[event.idx];
-      if (event.start) {
-        currently_opened_query_intervals_by_start.insert(current_query_interval);
-        currently_opened_query_intervals_by_end.insert(current_query_interval);
+      if (!event.end) {
+        currently_opened_query_interval = current_query_interval;
       } else {
-        currently_opened_query_intervals_by_start.erase(current_query_interval);
-        currently_opened_query_intervals_by_end.erase(current_query_interval);
+        currently_opened_query_interval = Interval("", -1, -1);
       }
     } else {
       if (opened > 0 && section_start != -1 && event.pos != last_pos) {
         long long section_end = event.pos;
-        long long soonest_ref_interval_start = currently_opened_ref_intervals_by_start.empty()
-                                                   ? section_start
-                                                   : currently_opened_ref_intervals_by_start.begin()->get_begin();
-        long long latest_ref_interval_end = currently_opened_ref_intervals_by_end.empty()
-                                                ? section_end
-                                                : currently_opened_ref_intervals_by_end.rbegin()->get_end();
-        long long soonest_query_interval_start = currently_opened_query_intervals_by_start.empty()
-                                                     ? section_start
-                                                     : currently_opened_query_intervals_by_start.begin()->get_begin();
-        long long latest_query_interval_end = currently_opened_query_intervals_by_end.empty()
-                                                  ? section_end
-                                                  : currently_opened_query_intervals_by_end.rbegin()->get_end();
-        sections.push_back(Section(chr_name, section_start, section_end, soonest_ref_interval_start < section_start,
-                                   section_end < latest_ref_interval_end, soonest_query_interval_start < section_start,
-                                   section_end < latest_query_interval_end));
+        long long ref_interval_begin = start_ref_int.length() != 0 ? start_ref_int.get_begin()
+                                       : currently_opened_ref_interval.length() != 0
+                                           ? currently_opened_ref_interval.get_begin()
+                                           : section_start;
+        long long ref_interval_end =
+            currently_opened_ref_interval.length() != 0 ? currently_opened_ref_interval.get_end() : section_end;
+        long long query_interval_begin = start_query_int.length() != 0 ? start_query_int.get_begin()
+                                         : currently_opened_query_interval.length() != 0
+                                             ? currently_opened_query_interval.get_begin()
+                                             : section_start;
+        long long query_interval_end =
+            currently_opened_query_interval.length() != 0 ? currently_opened_query_interval.get_end() : section_end;
+        sections.push_back(Section(chr_name, section_start, section_end, ref_interval_begin < section_start,
+                                   section_end < ref_interval_end, query_interval_begin < section_start,
+                                   section_end < query_interval_end));
       }
       if (event.pos != last_pos) {
         section_start = event.pos;
       }
       last_pos = event.pos;
 
-      if (event.start) {
+      if (!event.end) {
         opened++;
         spans[event.idx].begin = sections.size();
+        start_ref_int = currently_opened_ref_interval;
+        start_query_int = currently_opened_query_interval;
       } else {
         opened--;
         spans[event.idx].chr_name = chr_name;
         spans[event.idx].end = sections.size();
+
+        if (start_ref_int.length() != 0 && start_ref_int.get_end() <= event.pos)
+          start_ref_int = Interval("", -1, -1);
+        if (start_query_int.length() != 0 && start_query_int.get_end() <= event.pos)
+          start_query_int = Interval("", -1, -1);
       }
     }
   }
@@ -940,7 +940,7 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
   if (query_overflows) {
     Interval last_query_section1 = query_ints1.back();
     Interval first_query_section2 = query_ints2.front();
-    ref_intervals = {
+    query_intervals = {
         Interval(last_query_section1.get_chr_name(), last_query_section1.get_begin(), first_query_section2.get_end())};
   }
 
@@ -1001,10 +1001,6 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
   merged_section.set_probs(merged_probs);
   merged_section.set_overlap_count(new_overlap_count);
 
-  std::cout << section1 << "\n";
-  std::cout << section2 << "\n";
-  std::cout << merged_section << "\n";
-
   return merged_section;
 }
 
@@ -1052,7 +1048,7 @@ Section join_sections_new(const Section &section1, const Section &section2, cons
   if (query_overflows) {
     Interval last_query_section1 = query_ints1.back();
     Interval first_query_section2 = query_ints2.front();
-    ref_intervals = {
+    query_intervals = {
         Interval(last_query_section1.get_chr_name(), last_query_section1.get_begin(), first_query_section2.get_end())};
   }
 
