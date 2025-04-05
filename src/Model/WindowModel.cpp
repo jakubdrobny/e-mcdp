@@ -3,6 +3,7 @@
 #include "../Interval/Section.hpp"
 #include "../Results/WindowResult.hpp"
 #include <algorithm>
+#include <iostream>
 #include <set>
 
 WindowModel::WindowModel() {}

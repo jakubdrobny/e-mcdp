@@ -431,13 +431,22 @@ std::array<std::array<long double, 2>, 2> binary_exponentiation(const std::array
 }
 
 long double logsumexp(const std::vector<long double> &values) {
-  const long double ld_inf = std::numeric_limits<long double>::infinity();
-  if (values.size() == 0)
-    return -ld_inf;
+  if (values.empty()) {
+    return 0.0L;
+  }
 
-  long double max_value = 0.0L;
-  for (size_t i = 0; i < values.size(); i++)
-    max_value = std::max(max_value, values[i]);
+  long double ld_inf = std::numeric_limits<long double>::infinity();
+
+  long double max_value = values[0];
+  for (size_t i = 1; i < values.size(); i++) {
+    if (values[i] - max_value > 1e-50) {
+      max_value = values[i];
+    }
+  }
+
+  if (max_value == -ld_inf) {
+    return max_value;
+  }
 
   long double sum = 0.0L;
   for (long double value : values)
@@ -891,8 +900,8 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
   StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
 
   for (size_t idx = 0; idx < k; idx++) {
-    res[idx] = logsumexp({std::abs(probs[0][0][idx]) < 1e-9 ? 0 : log(stationary_distribution[0]) + probs[0][0][idx],
-                          std::abs(probs[1][0][idx]) < 1e-9 ? 0 : log(stationary_distribution[1]) + probs[1][0][idx]});
+    res[idx] = logsumexp({std::abs(probs[0][0][idx]) < 1e-50 ? 0 : log(stationary_distribution[0]) + probs[0][0][idx],
+                          std::abs(probs[1][0][idx]) < 1e-50 ? 0 : log(stationary_distribution[1]) + probs[1][0][idx]});
   }
 
   return res;

@@ -276,3 +276,16 @@ TEST(WindowModelRunTest, OverflowingIntervals) {
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
   ASSERT_EQ(resultsNaive, resultsFast);
 }
+
+TEST(WindowModelRunTest, NestedWindows) {
+  std::vector<Interval> _intervals = {
+      {"chr1", 1909, 2009}, {"chr1", 2694, 2794}, {"chr1", 3000, 7000}, {"chr1", 9299, 9399}, {"chr1", 9629, 9729}};
+  std::vector<Interval> windows = {{"chr1", 2000, 6000}, {"chr1", 2700, 5400}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
+
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  ASSERT_EQ(resultsNaive, resultsFast);
+}
