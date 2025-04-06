@@ -337,8 +337,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
     SectionProbs probs = eval_probs_single_section_new(sections[sections_idx], markov_chain);
     sections[sections_idx].set_probs(probs);
 
-    long long current_overlap_count =
-        count_overlaps_single_chr(ref_intervals_by_section[sections_idx], query_intervals_by_section[sections_idx]);
+    long long current_overlap_count = count_overlaps_single_chr(sections[sections_idx].get_ref_intervals(),
+                                                                sections[sections_idx].get_query_intervals());
     sections[sections_idx].set_overlap_count(current_overlap_count);
   }
 
@@ -352,7 +352,6 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
     // merge probs for sections
     for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
       Section next_section = sections[sections_idx];
-
       section = join_sections_new(section, next_section, markov_chain);
     }
 
@@ -360,7 +359,7 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =
-        merge_multi_probs(section.get_probs().get_normal(), markov_chain);
+        merge_multi_probs(section.get_probs().get_except_first_and_last(), markov_chain);
     probs_by_window[windows_idx] =
         WindowResult(windows[windows_idx], section.get_overlap_count(), cur_windows_single_probs);
   }

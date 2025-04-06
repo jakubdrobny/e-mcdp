@@ -953,6 +953,10 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
         Interval(last_query_section1.get_chr_name(), last_query_section1.get_begin(), first_query_section2.get_end())};
   }
 
+  bool should_calculate_middle_probs = !ref_ints1.empty() && !ref_ints2.empty() &&
+                                       ref_ints1.back().get_begin() != section1.get_begin() &&
+                                       ref_ints2.front().get_end() != section2.get_end();
+
   MultiProbs new_normal = joint_logprobs(probs1.get_normal(), probs2.get_normal());
   if (ref_overflows) {
     new_normal = joint_logprobs(joint_logprobs(probs1.get_except_last(), middle_probs), probs2.get_except_first());
@@ -961,19 +965,25 @@ Section join_sections(const Section &section1, const Section &section2, const Ma
   MultiProbs new_except_first = joint_logprobs(probs1.get_except_first(), probs2.get_normal());
   if (ref_overflows) {
     new_except_first =
-        joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs), probs2.get_except_first());
+        joint_logprobs(should_calculate_middle_probs ? joint_logprobs(probs1.get_except_first_and_last(), middle_probs)
+                                                     : probs1.get_except_first_and_last(),
+                       probs2.get_except_first());
   }
 
   MultiProbs new_except_last = joint_logprobs(probs1.get_normal(), probs2.get_except_last());
   if (ref_overflows) {
     new_except_last =
-        joint_logprobs(joint_logprobs(probs1.get_except_last(), middle_probs), probs2.get_except_first_and_last());
+        joint_logprobs(should_calculate_middle_probs ? joint_logprobs(probs1.get_except_last(), middle_probs)
+                                                     : probs1.get_except_last(),
+                       probs2.get_except_first_and_last());
   }
 
   MultiProbs new_except_first_and_last = joint_logprobs(probs1.get_except_first(), probs2.get_except_last());
   if (ref_overflows) {
-    new_except_first_and_last = joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs),
-                                               probs2.get_except_first_and_last());
+    new_except_first_and_last =
+        joint_logprobs(should_calculate_middle_probs ? joint_logprobs(probs1.get_except_first_and_last(), middle_probs)
+                                                     : probs1.get_except_first_and_last(),
+                       probs2.get_except_first_and_last());
   }
 
   long long new_overlap_count = section1.get_overlap_count() + section2.get_overlap_count();
@@ -1062,7 +1072,8 @@ Section join_sections_new(const Section &section1, const Section &section2, cons
   }
 
   MultiProbs new_probs = joint_logprobs(probs1.get_except_first_and_last(), probs2.get_except_first_and_last());
-  if (ref_overflows) {
+  if (ref_overflows && ref_ints1.back().get_begin() != section1.get_begin() &&
+      ref_ints2.front().get_end() != section2.get_end()) {
     new_probs = joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs),
                                probs2.get_except_first_and_last());
   }

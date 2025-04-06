@@ -238,7 +238,10 @@ TEST(WindowModelRunTest, NonOverlappingWindows) {
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
   ASSERT_EQ(resultsNaive, resultsFast);
+  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST(WindowModelRunTest, EmptySectionMerge) {
@@ -249,7 +252,10 @@ TEST(WindowModelRunTest, EmptySectionMerge) {
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
   ASSERT_EQ(resultsNaive, resultsFast);
+  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST(WindowModelRunTest, EmptyWindow) {
@@ -260,7 +266,10 @@ TEST(WindowModelRunTest, EmptyWindow) {
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
   ASSERT_EQ(resultsNaive, resultsFast);
+  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST(WindowModelRunTest, OverflowingIntervals) {
@@ -274,7 +283,10 @@ TEST(WindowModelRunTest, OverflowingIntervals) {
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
   ASSERT_EQ(resultsNaive, resultsFast);
+  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST(WindowModelRunTest, NestedWindows) {
@@ -287,5 +299,24 @@ TEST(WindowModelRunTest, NestedWindows) {
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
   ASSERT_EQ(resultsNaive, resultsFast);
+  ASSERT_EQ(resultsNaive, resultsTest);
+}
+
+TEST(WindowModelRunTest, LongOverflow) {
+  std::vector<Interval> _intervals = {
+      {"chr1", 1909, 2009}, {"chr1", 2694, 2794}, {"chr1", 3000, 9000}, {"chr1", 9299, 9399}, {"chr1", 9629, 9729}};
+  std::vector<Interval> windows = {{"chr1", 0, 6000}, {"chr1", 2000, 8000}, {"chr1", 4000, 10000}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
+
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsFast);
+  ASSERT_EQ(resultsNaive, resultsTest);
 }
