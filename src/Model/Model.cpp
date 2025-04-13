@@ -94,8 +94,6 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
   // calculate zero-th row in separate way
   for (int j = 1; j <= m; j++) {
     long long gap = ref_intervals_augmented[j].begin - ref_intervals_augmented[j - 1].end;
-    if (j == 1)
-      gap--;
     if (gap < 0) {
       logger.error("Gap should be non-negative.");
       exit(1);
@@ -119,14 +117,8 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
   for (int k = 1; k <= m; k++) {
     next_line[k - 1] = {0, 0};
 
-    if (k % 10 == 0) {
-      logger.debug("Processing " + std::to_string(k) + "-th line out of " + std::to_string(m) + " rows of DP table...");
-    }
-
     for (int j = k; j < m + 1; j++) {
       long long gap = ref_intervals_augmented[j].begin - ref_intervals_augmented[j - 1].end;
-      if (j == 1)
-        gap--;
       if (gap < 0) {
         logger.error("Gap should be non-negative.");
         exit(1);
@@ -220,8 +212,8 @@ Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_interva
       next_line[k - 1] = {0, 0};
 
       if (k % 10 == 0) {
-        logger.debug("Processing " + std::to_string(k) + "-th line out of " + std::to_string(m) +
-                     " rows of DP table...");
+        // logger.debug("Processing " + std::to_string(k) + "-th line out of " + std::to_string(m) +
+        //            " rows of DP table...");
       }
 
       for (int j = k; j <= m; j++) {

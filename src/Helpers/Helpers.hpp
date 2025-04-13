@@ -121,4 +121,7 @@ bool compare_vectors_stl(const std::vector<long double> &a, const std::vector<lo
                          long double epsilon = 1e-9);
 
 std::vector<Interval> split_intervals_into_ones(const std::vector<Interval> &intervals);
+
+template <class T> std::ostream &operator<<(std::ostream &out, const std::vector<T> &vec);
+
 #endif

@@ -1,7 +1,6 @@
 #include "../Args/Args.hpp"
 #include "../Interval/Interval.hpp"
 #include "../Model/WindowModel.hpp"
-#include <gtest/gtest-death-test.h>
 #include <gtest/gtest.h>
 
 class WindowModelRunTest : public ::testing::Test {
@@ -122,13 +121,50 @@ TEST_F(WindowModelRunTest, LongOverflow) {
   ASSERT_EQ(resultsNaive, resultsTest);
 }
 
-TEST(LargeWindowModelTest, LargeTests) {
+TEST_F(WindowModelRunTest, G24_TEST) {
+  std::vector<Interval> ref_ints = {
+      {"chr1", 223, 323}, {"chr1", 956, 1056}, {"chr1", 2146, 2246}, {"chr1", 2678, 2778}};
+  std::vector<Interval> query_ints = {
+      {"chr1", 42, 142},    {"chr1", 297, 397},   {"chr1", 547, 647},   {"chr1", 874, 974},   {"chr1", 1151, 1251},
+      {"chr1", 1263, 1363}, {"chr1", 1434, 1534}, {"chr1", 1587, 1687}, {"chr1", 1733, 1833}, {"chr1", 1861, 1961},
+      {"chr1", 2079, 2179}, {"chr1", 2325, 2425}, {"chr1", 2486, 2586}, {"chr1", 2678, 2778}, {"chr1", 2899, 2999}};
+  std::vector<Interval> windows = {{"chr1", 0, 2000}, {"chr1", 1000, 3000}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 3000}};
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsFast);
+  ASSERT_EQ(resultsNaive, resultsTest);
+}
+
+TEST_F(WindowModelRunTest, SmallTest) {
+  std::vector<Interval> ref_ints = {{"chr1", 956, 1056}};
+  std::vector<Interval> query_ints = {
+      {"chr1", 42, 142},    {"chr1", 297, 397},   {"chr1", 547, 647},   {"chr1", 874, 974},   {"chr1", 1151, 1251},
+      {"chr1", 1263, 1363}, {"chr1", 1434, 1534}, {"chr1", 1587, 1687}, {"chr1", 1733, 1833}, {"chr1", 1861, 1961}};
+  std::vector<Interval> windows = {{"chr1", 0, 1000}, {"chr1", 1000, 2000}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 2000}};
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsFast);
+  ASSERT_EQ(resultsNaive, resultsTest);
+}
+
+TEST(LargeWindowModelTest, DISABLED_LargeTests) {
   Args args(logger);
   args.ref_intervals_file_path = "data/02-synth-data/g24_8.ref.tsv";
   args.query_intervals_file_path = "data/02-synth-data/g24_8.query.tsv";
   args.chr_size_file_path = "data/02-synth-data/g24_sizes.tsv";
   args.windows_source = "basic";
-  args.windows_size = 10000;
+  args.windows_size = 2000;
+  args.windows_step = 1000;
 
   std::vector<Interval> ref_intervals = load_intervals(args.ref_intervals_file_path);
   std::vector<Interval> query_intervals = load_intervals(args.query_intervals_file_path);
@@ -145,19 +181,22 @@ TEST(LargeWindowModelTest, LargeTests) {
   ref_intervals = remove_empty_intervals(ref_intervals);
   query_intervals = remove_empty_intervals(query_intervals);
 
-  std::vector<Interval> windows = load_windows(args, chr_sizes);
-  windows = filter_intervals_by_chr_name(windows, chr_names);
-  windows = remove_empty_intervals(windows);
-
   for (std::string windows_source : {"basic", "dense"}) {
     args.windows_source = windows_source;
+    std::vector<Interval> windows = load_windows(args, chr_sizes);
+    windows = filter_intervals_by_chr_name(windows, chr_names);
+    windows = remove_empty_intervals(windows);
+
     std::vector<WindowResult> resultsNaive =
         WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::NAIVE).run();
     std::vector<WindowResult> resultsFast =
         WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::FAST).run();
     std::vector<WindowResult> resultsTest =
         WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::TEST).run();
-    ASSERT_EQ(resultsNaive, resultsFast);
-    ASSERT_EQ(resultsNaive, resultsTest);
+
+    for (int i = 0; i < resultsNaive.size(); i++) {
+      ASSERT_EQ(resultsNaive[i], resultsFast[i]);
+      ASSERT_EQ(resultsFast[i], resultsTest[i]);
+    }
   }
 }

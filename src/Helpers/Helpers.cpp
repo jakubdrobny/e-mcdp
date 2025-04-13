@@ -485,6 +485,7 @@ std::vector<long double> joint_logprobs(const std::vector<std::vector<long doubl
   std::vector<long double> next_row(max_k + 1, -ld_inf);
 
   std::vector<long double> accum;
+  std::cout << "probs_by_chr:\n\n\n\n\n\n\n\n\n\n" << probs_by_chr << "\n";
   for (std::vector<long double> level :
        std::vector<std::vector<long double>>(probs_by_chr.begin() + 1, probs_by_chr.end())) {
     for (long long k = 0; k <= max_k; k++) {
@@ -538,14 +539,21 @@ MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
       }
     }
   }
+  std::cout << "here1\n";
 
   if (empty_probs(probs1)) {
     return probs2;
   }
+  std::cout << "here2\n";
 
-  if (empty_probs(probs2)) {
+  std::cout << "probs1\nprobs2\n";
+  print_multiprobs(probs1);
+  print_multiprobs(probs2);
+  if (false && empty_probs(probs2)) {
     return probs1;
   }
+
+  std::cout << "here3\n";
 
   MultiProbs res{};
 
@@ -567,6 +575,9 @@ MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
       res[i][j] = combined;
     }
   }
+
+  std::cout << "res:\n";
+  print_multiprobs(res);
 
   return res;
 }
@@ -915,10 +926,7 @@ void print_multiprobs(const MultiProbs &probs) {
 
   for (int i : {0, 1}) {
     for (int j : {0, 1}) {
-      std::cout << "(" << i << "," << j << "):";
-      for (auto x : probs[i][j])
-        std::cout << " " << x;
-      std::cout << "\n";
+      std::cout << "(" << i << "," << j << "): " << probs[i][j] << "\n";
     }
   }
 }
@@ -1072,6 +1080,7 @@ Section join_sections_new(const Section &section1, const Section &section2, cons
   }
 
   MultiProbs new_probs = joint_logprobs(probs1.get_except_first_and_last(), probs2.get_except_first_and_last());
+  std::cout << "joining shit\n";
   if (ref_overflows && ref_ints1.back().get_begin() != section1.get_begin() &&
       ref_ints2.front().get_end() != section2.get_end()) {
     new_probs = joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs),
@@ -1113,4 +1122,15 @@ Section join_sections_new(const Section &section1, const Section &section2, cons
   merged_section.set_overlap_count(new_overlap_count);
 
   return merged_section;
+}
+
+template <class T> std::ostream &operator<<(std::ostream &out, const std::vector<T> &vec) {
+  out << "[";
+  for (size_t i = 0; i < vec.size(); i++) {
+    if (i)
+      out << " ";
+    out << vec[i];
+  }
+  out << "]";
+  return out;
 }

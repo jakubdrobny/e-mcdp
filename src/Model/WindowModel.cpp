@@ -240,13 +240,15 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
 
   // 4. calculature probs and overlap of each section
   for (size_t sections_idx = 0; sections_idx < sections.size(); sections_idx++) {
-    SectionProbs probs = eval_probs_single_section(ref_intervals_by_section[sections_idx], sections[sections_idx].begin,
-                                                   sections[sections_idx].end, markov_chain);
-    sections[sections_idx].set_probs(probs);
     sections[sections_idx].set_ref_intervals(ref_intervals_by_section[sections_idx]);
     sections[sections_idx].set_query_intervals(query_intervals_by_section[sections_idx]);
-    long long current_overlap_count =
-        count_overlaps_single_chr(ref_intervals_by_section[sections_idx], query_intervals_by_section[sections_idx]);
+    SectionProbs probs =
+        eval_probs_single_section(sections[sections_idx].get_ref_intervals(), sections[sections_idx].begin,
+                                  sections[sections_idx].end, markov_chain);
+    sections[sections_idx].set_probs(probs);
+    std::cout << "section(" << sections_idx << "): " << sections[sections_idx] << "\n";
+    long long current_overlap_count = count_overlaps_single_chr(sections[sections_idx].get_ref_intervals(),
+                                                                sections[sections_idx].get_query_intervals());
     sections[sections_idx].set_overlap_count(current_overlap_count);
   }
 
@@ -262,6 +264,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
       Section next_section = sections[sections_idx];
       section = join_sections(section, next_section, markov_chain);
     }
+
+    std::cout << "section_smarter: " << section << "\n";
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =
@@ -336,6 +340,10 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
 
     SectionProbs probs = eval_probs_single_section_new(sections[sections_idx], markov_chain);
     sections[sections_idx].set_probs(probs);
+    std::cout << "section(" << sections_idx << "): " << sections[sections_idx] << "\n";
+    Section testSect = sections[sections_idx];
+    correct_ends(testSect, markov_chain);
+    std::cout << "testSect: " << testSect << "\n";
 
     long long current_overlap_count = count_overlaps_single_chr(sections[sections_idx].get_ref_intervals(),
                                                                 sections[sections_idx].get_query_intervals());
@@ -355,7 +363,9 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
       section = join_sections_new(section, next_section, markov_chain);
     }
 
+    std::cout << "section_smarter_new_before_correction: " << section << "\n";
     correct_ends(section, markov_chain);
+    std::cout << "section_smarter_new_after_correction: " << section << "\n";
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =
@@ -395,16 +405,20 @@ void WindowModel::correct_ends(Section &section, const MarkovChain &markov_chain
   MultiProbs new_probs = section.get_probs().get_except_first_and_last();
 
   if (section.get_first_ref_interval_intersected() && !ref_intervals.empty()) {
+    std::cout << "correcting_start\n";
     long long new_section_end = ref_intervals.front().get_end();
     new_probs = joint_logprobs(
         eval_probs_single_chr_direct_new({ref_intervals.front()}, section.get_begin(), new_section_end, markov_chain),
         new_probs);
+    std::cout << "new_probs_begin: ";
+    print_multiprobs(new_probs);
   }
 
   if (section.get_last_ref_interval_intersected() &&
       (!section.get_first_ref_interval_intersected() ||
        (section.get_first_ref_interval_intersected() && ref_intervals.size() > 1))) {
     long long new_section_start = ref_intervals[ref_intervals.size() - 2].get_end();
+    std::cout << "correcting_end\n";
     new_probs = joint_logprobs(new_probs, eval_probs_single_chr_direct_new({ref_intervals.back()}, new_section_start,
                                                                            section.get_end(), markov_chain));
   }
