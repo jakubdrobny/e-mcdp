@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     logger.debug("Time taken to calculate p-value: " + std::to_string(duration) + " milliseconds\n");
   } else {
     // ideme pocitat pre cely genom spolu
-    Model model(ref_intervals, query_intervals, chr_sizes, args.method);
+    Model model(ref_intervals, query_intervals, chr_sizes);
 
     // measure time from here, previous parts are just tests and i/o
     long double p_value = model.eval_pvalue(overlap_count);

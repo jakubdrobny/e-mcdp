@@ -157,7 +157,7 @@ TEST_F(WindowModelRunTest, SmallTest) {
   ASSERT_EQ(resultsNaive, resultsTest);
 }
 
-TEST(LargeWindowModelTest, DISABLED_LargeTests) {
+TEST(LargeWindowModelTest, LargeTests) {
   Args args(logger);
   args.ref_intervals_file_path = "data/02-synth-data/g24_8.ref.tsv";
   args.query_intervals_file_path = "data/02-synth-data/g24_8.query.tsv";
@@ -194,9 +194,9 @@ TEST(LargeWindowModelTest, DISABLED_LargeTests) {
     std::vector<WindowResult> resultsTest =
         WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::TEST).run();
 
-    for (int i = 0; i < resultsNaive.size(); i++) {
+    for (size_t i = 0; i < resultsNaive.size(); i++) {
       ASSERT_EQ(resultsNaive[i], resultsFast[i]);
-      ASSERT_EQ(resultsFast[i], resultsTest[i]);
+      ASSERT_EQ(resultsNaive[i], resultsTest[i]);
     }
   }
 }

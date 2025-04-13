@@ -12,25 +12,19 @@ class Model {
 public:
   std::vector<Interval> ref_intervals, query_intervals;
   ChrSizesVector chr_sizes;
-  std::string method;
 
   using ProbMethod =
       std::function<std::vector<long double>(std::vector<Interval>, std::vector<Interval>, MarkovChain, long long)>;
   ProbMethod prob_method;
 
   Model();
-  Model(std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals, ChrSizesMap chr_sizes_map,
-        std::string method);
+  Model(std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals, ChrSizesMap chr_sizes_map);
 
   long double eval_pvalue(long long overlap_count);
 
   static std::vector<long double> eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
                                                                std::vector<Interval> query_intervals,
                                                                const MarkovChain &markov_chain, long long chr_size);
-  static std::vector<long double> eval_probs_single_chr_direct_eigen(std::vector<Interval> ref_intervals,
-                                                                     std::vector<Interval> query_intervals,
-                                                                     const MarkovChain &markov_chain,
-                                                                     long long chr_size);
   static std::array<std::array<std::vector<long double>, 2>, 2>
   eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_intervals, long long window_start,
                                    long long window_end, const MarkovChain &markov_chain);

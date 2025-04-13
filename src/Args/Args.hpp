@@ -17,7 +17,6 @@ public:
   std::string query_intervals_file_path;
   std::string output_file_path;
   std::string log_file_path;
-  std::string method = "direct";
   Statistic statistic = Statistic::OVERLAPS;
   Algorithm algorithm = Algorithm::NAIVE;
   std::string windows_source;

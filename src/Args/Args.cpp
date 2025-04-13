@@ -42,13 +42,6 @@ void Args::parse_args(int argc, char *argv[]) {
       } else {
         log_failed_to_parse_args(flag);
       }
-    } else if (flag == "--method") {
-      if (i + 1 < argc) {
-        method = argv[++i];
-        logger.info("Parsed --method: " + output_file_path);
-      } else {
-        log_failed_to_parse_args(flag);
-      }
     } else if (flag == "--windows.source") {
       if (i + 1 < argc) {
         windows_source = argv[++i];
@@ -113,7 +106,6 @@ void Args::debug_args() {
   logger.debug("ref_intervals_file_path: " + ref_intervals_file_path);
   logger.debug("query_intervals_file_path: " + query_intervals_file_path);
   logger.debug("chr_size_file_path: " + chr_size_file_path);
-  logger.debug("method: " + method);
   logger.debug("statistic: " + statisticToString.at(statistic));
   logger.debug("algorithm: " + algorithmToString.at(algorithm));
   logger.debug("windows.source: " + windows_source);

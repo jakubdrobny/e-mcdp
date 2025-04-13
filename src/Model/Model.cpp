@@ -2,28 +2,19 @@
 #include "../Logger/Logger.hpp"
 #include "../MarkovChain/MarkovChain.hpp"
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <omp.h>
 
 Model::Model() : ref_intervals(), query_intervals(), chr_sizes() {}
 
-Model::Model(std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals, ChrSizesMap chr_sizes_map,
-             std::string method)
-    : ref_intervals(ref_intervals), query_intervals(query_intervals), method(method) {
+Model::Model(std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals, ChrSizesMap chr_sizes_map)
+    : ref_intervals(ref_intervals), query_intervals(query_intervals) {
   sort(ref_intervals.begin(), ref_intervals.end());
   sort(query_intervals.begin(), query_intervals.end());
   chr_sizes = chr_sizes_map_to_array(chr_sizes_map);
   sort(chr_sizes.begin(), chr_sizes.end());
 
-  if (method == "direct") {
-    prob_method = Model::eval_probs_single_chr_direct;
-  } else if (method == "eigen") {
-    prob_method = Model::eval_probs_single_chr_direct_eigen;
-  } else {
-    logger.error("Invalid method. Given: " + method + ". Expected: [direct, eigen].");
-    exit(1);
-  }
+  prob_method = Model::eval_probs_single_chr_direct;
 }
 
 std::vector<Interval> Model::select_intervals_by_chr_name(std::vector<Interval> &intervals, size_t &intervals_idx,
@@ -67,7 +58,7 @@ long double Model::eval_pvalue(long long overlap_count) {
 std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
                                                              std::vector<Interval> query_intervals,
                                                              const MarkovChain &markov_chain, long long chr_size) {
-  if (ref_intervals.empty() || query_intervals.empty())
+  if (ref_intervals.empty())
     return {0.};
 
   int m = ref_intervals.size();
@@ -81,8 +72,9 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
   }
 
   std::vector<Interval> ref_intervals_augmented;
-  ref_intervals_augmented.push_back(Interval(ref_intervals[0].chr_name, std::numeric_limits<long long>::min(), 0));
+  ref_intervals_augmented.push_back(Interval("", std::numeric_limits<long long>::min(), 0));
   extend(ref_intervals_augmented, ref_intervals);
+  ref_intervals_augmented.push_back(Interval("", chr_size, std::numeric_limits<long long>::max()));
 
   std::vector<std::array<long double, 2>> prev_line(m + 1, std::array<long double, 2>()),
       last_col(m + 1, std::array<long double, 2>());
@@ -117,7 +109,7 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
   for (int k = 1; k <= m; k++) {
     next_line[k - 1] = {0, 0};
 
-    for (int j = k; j < m + 1; j++) {
+    for (int j = k; j <= m; j++) {
       long long gap = ref_intervals_augmented[j].begin - ref_intervals_augmented[j - 1].end;
       if (gap < 0) {
         logger.error("Gap should be non-negative.");
@@ -163,21 +155,11 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
 std::array<std::array<std::vector<long double>, 2>, 2>
 Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_intervals, long long window_start,
                                         long long window_end, const MarkovChain &markov_chain) {
-  if (ref_intervals.empty())
-    return {{{{
-                 {0.},
-                 {0.},
-             }},
-             {{
-                 {0.},
-                 {0.},
-             }}}};
-
   int m = ref_intervals.size();
   std::vector<Interval> ref_intervals_augmented;
-  ref_intervals_augmented.push_back(
-      Interval(ref_intervals[0].chr_name, std::numeric_limits<long long>::min(), window_start));
+  ref_intervals_augmented.push_back(Interval("", std::numeric_limits<long long>::min(), window_start));
   extend(ref_intervals_augmented, ref_intervals);
+  ref_intervals_augmented.push_back(Interval("", window_end, std::numeric_limits<long long>::max()));
 
   std::array<std::array<std::vector<long double>, 2>, 2> probs{};
   for (int start_state : {0, 1}) {
@@ -210,11 +192,6 @@ Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_interva
     std::vector<std::array<long double, 2>> next_line(m + 1, std::array<long double, 2>{});
     for (int k = 1; k <= m; k++) {
       next_line[k - 1] = {0, 0};
-
-      if (k % 10 == 0) {
-        // logger.debug("Processing " + std::to_string(k) + "-th line out of " + std::to_string(m) +
-        //            " rows of DP table...");
-      }
 
       for (int j = k; j <= m; j++) {
         long long gap = ref_intervals_augmented[j].begin - ref_intervals_augmented[j - 1].end;
@@ -263,12 +240,4 @@ Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_interva
   }
 
   return probs;
-}
-
-std::vector<long double> Model::eval_probs_single_chr_direct_eigen(std::vector<Interval> ref_intervals,
-                                                                   std::vector<Interval> query_intervals,
-                                                                   const MarkovChain &markov_chain,
-                                                                   long long chr_size) {
-  logger.error("This is not implemented.");
-  exit(1);
 }

@@ -7,6 +7,7 @@
 #include <array>
 #include <cmath>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -438,11 +439,21 @@ long double logsumexp(const std::vector<long double> &values) {
   long double ld_inf = std::numeric_limits<long double>::infinity();
 
   long double max_value = values[0];
-  for (size_t i = 1; i < values.size(); i++) {
-    if (values[i] - max_value > 1e-50) {
-      max_value = values[i];
+  bool all_zero = true;
+  for (size_t i = 0; i < values.size(); i++) {
+    if (std::abs(values[i]) > 1e-50) {
+      all_zero = false;
+    }
+
+    if (i > 0) {
+      if (values[i] - max_value > 1e-50) {
+        max_value = values[i];
+      }
     }
   }
+
+  if (all_zero)
+    return 0.;
 
   if (max_value == -ld_inf) {
     return max_value;
@@ -485,7 +496,6 @@ std::vector<long double> joint_logprobs(const std::vector<std::vector<long doubl
   std::vector<long double> next_row(max_k + 1, -ld_inf);
 
   std::vector<long double> accum;
-  std::cout << "probs_by_chr:\n\n\n\n\n\n\n\n\n\n" << probs_by_chr << "\n";
   for (std::vector<long double> level :
        std::vector<std::vector<long double>>(probs_by_chr.begin() + 1, probs_by_chr.end())) {
     for (long long k = 0; k <= max_k; k++) {
@@ -539,21 +549,6 @@ MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
       }
     }
   }
-  std::cout << "here1\n";
-
-  if (empty_probs(probs1)) {
-    return probs2;
-  }
-  std::cout << "here2\n";
-
-  std::cout << "probs1\nprobs2\n";
-  print_multiprobs(probs1);
-  print_multiprobs(probs2);
-  if (false && empty_probs(probs2)) {
-    return probs1;
-  }
-
-  std::cout << "here3\n";
 
   MultiProbs res{};
 
@@ -575,9 +570,6 @@ MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
       res[i][j] = combined;
     }
   }
-
-  std::cout << "res:\n";
-  print_multiprobs(res);
 
   return res;
 }
@@ -700,6 +692,7 @@ std::string to_string(const std::vector<std::vector<long double>> &matrix) {
 std::string to_string(const std::vector<long double> &vec) {
   std::ostringstream oss;
   oss << "[";
+  oss << std::fixed << std::setprecision(12);
 
   for (size_t i = 0; i < vec.size(); ++i) {
     if (i > 0)
@@ -802,7 +795,9 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
     if (e1.pos == e2.pos) {
       if (e1.type == e2.type)
         return e1.type != WINDOW ? e1.end < e2.end : e1.end > e2.end;
-      return e1.type < e2.type;
+      if (e1.type == WINDOW || e2.type == WINDOW) {
+        return e1.end == e2.end ? e1.type < e2.type : e1.end > e2.end;
+      }
     }
     return e1.pos < e2.pos;
   });
@@ -902,6 +897,8 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
     }
   }
 
+  const long double THRESHOLD = 1e-12;
+
   for (size_t i : {0, 1}) {
     for (size_t idx = 0; idx < k; idx++) {
       probs[i][0][idx] = logsumexp({probs[i][0][idx], probs[i][1][idx]});
@@ -911,8 +908,10 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
   StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
 
   for (size_t idx = 0; idx < k; idx++) {
-    res[idx] = logsumexp({std::abs(probs[0][0][idx]) < 1e-50 ? 0 : log(stationary_distribution[0]) + probs[0][0][idx],
-                          std::abs(probs[1][0][idx]) < 1e-50 ? 0 : log(stationary_distribution[1]) + probs[1][0][idx]});
+    std::vector<long double> arr = {
+        std::abs(probs[0][0][idx]) < THRESHOLD ? 0 : log(stationary_distribution[0]) + probs[0][0][idx],
+        std::abs(probs[1][0][idx]) < THRESHOLD ? 0 : log(stationary_distribution[1]) + probs[1][0][idx]};
+    res[idx] = logsumexp(arr);
   }
 
   return res;
@@ -1080,7 +1079,6 @@ Section join_sections_new(const Section &section1, const Section &section2, cons
   }
 
   MultiProbs new_probs = joint_logprobs(probs1.get_except_first_and_last(), probs2.get_except_first_and_last());
-  std::cout << "joining shit\n";
   if (ref_overflows && ref_ints1.back().get_begin() != section1.get_begin() &&
       ref_ints2.front().get_end() != section2.get_end()) {
     new_probs = joint_logprobs(joint_logprobs(probs1.get_except_first_and_last(), middle_probs),

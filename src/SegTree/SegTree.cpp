@@ -1,7 +1,5 @@
 #include "SegTree.hpp"
 
-#include <iostream>
-
 template <class T>
 SegTree<T>::SegTree(int n, SegTreeOperation operation, T neutral_element)
     : N(n), op(operation), neutral_element(neutral_element) {
@@ -20,11 +18,6 @@ SegTree<T>::SegTree(SegTreeOperation operation, T neutral_element, const std::ve
   for (int i = this->N - 1; i > 0; --i) {
     this->t[i] = this->op(this->t[i << 1], this->t[i << 1 | 1]);
   }
-
-  std::cout << "t:";
-  for (auto x : this->t)
-    std::cout << " " << x;
-  std::cout << "\n";
 }
 
 template <class T> void SegTree<T>::set(int pos, T el) {
