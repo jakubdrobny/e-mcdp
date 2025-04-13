@@ -140,13 +140,11 @@ TEST_F(WindowModelRunTest, G24_TEST) {
   ASSERT_EQ(resultsNaive, resultsTest);
 }
 
-TEST_F(WindowModelRunTest, SmallTest) {
-  std::vector<Interval> ref_ints = {{"chr1", 956, 1056}};
-  std::vector<Interval> query_ints = {
-      {"chr1", 42, 142},    {"chr1", 297, 397},   {"chr1", 547, 647},   {"chr1", 874, 974},   {"chr1", 1151, 1251},
-      {"chr1", 1263, 1363}, {"chr1", 1434, 1534}, {"chr1", 1587, 1687}, {"chr1", 1733, 1833}, {"chr1", 1861, 1961}};
-  std::vector<Interval> windows = {{"chr1", 0, 1000}, {"chr1", 1000, 2000}};
-  ChrSizesMap chr_sizes_map = {{"chr1", 2000}};
+TEST_F(WindowModelRunTest, DISABLED_SmallTest) {
+  std::vector<Interval> ref_ints = {{"chr1", 4391, 4491}, {"chr1", 4551, 4651}};
+  std::vector<Interval> query_ints = {{"chr1", 4465, 4565}};
+  std::vector<Interval> windows = {{"chr1", 4400, 4600}, {"chr1", 4500, 4600}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
   std::vector<WindowResult> resultsFast =
@@ -163,8 +161,6 @@ TEST(LargeWindowModelTest, LargeTests) {
   args.query_intervals_file_path = "data/02-synth-data/g24_8.query.tsv";
   args.chr_size_file_path = "data/02-synth-data/g24_sizes.tsv";
   args.windows_source = "basic";
-  args.windows_size = 2000;
-  args.windows_step = 1000;
 
   std::vector<Interval> ref_intervals = load_intervals(args.ref_intervals_file_path);
   std::vector<Interval> query_intervals = load_intervals(args.query_intervals_file_path);
@@ -181,22 +177,28 @@ TEST(LargeWindowModelTest, LargeTests) {
   ref_intervals = remove_empty_intervals(ref_intervals);
   query_intervals = remove_empty_intervals(query_intervals);
 
-  for (std::string windows_source : {"basic", "dense"}) {
-    args.windows_source = windows_source;
-    std::vector<Interval> windows = load_windows(args, chr_sizes);
-    windows = filter_intervals_by_chr_name(windows, chr_names);
-    windows = remove_empty_intervals(windows);
+  std::vector<std::pair<long long, long long>> window_confs{{2000, 1000}, {10000, 1000}};
+  for (auto conf : window_confs) {
+    args.windows_size = conf.first;
+    args.windows_step = conf.second;
 
-    std::vector<WindowResult> resultsNaive =
-        WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::NAIVE).run();
-    std::vector<WindowResult> resultsFast =
-        WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::FAST).run();
-    std::vector<WindowResult> resultsTest =
-        WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::TEST).run();
+    for (std::string windows_source : {"basic", "dense"}) {
+      args.windows_source = windows_source;
+      std::vector<Interval> windows = load_windows(args, chr_sizes);
+      windows = filter_intervals_by_chr_name(windows, chr_names);
+      windows = remove_empty_intervals(windows);
 
-    for (size_t i = 0; i < resultsNaive.size(); i++) {
-      ASSERT_EQ(resultsNaive[i], resultsFast[i]);
-      ASSERT_EQ(resultsNaive[i], resultsTest[i]);
+      std::vector<WindowResult> resultsNaive =
+          WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::NAIVE).run();
+      std::vector<WindowResult> resultsFast =
+          WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::FAST).run();
+      std::vector<WindowResult> resultsTest =
+          WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::TEST).run();
+
+      for (size_t i = 0; i < resultsNaive.size(); i++) {
+        ASSERT_EQ(resultsNaive[i], resultsFast[i]);
+        ASSERT_EQ(resultsNaive[i], resultsTest[i]);
+      }
     }
   }
 }

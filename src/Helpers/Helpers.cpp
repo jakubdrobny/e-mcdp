@@ -439,21 +439,11 @@ long double logsumexp(const std::vector<long double> &values) {
   long double ld_inf = std::numeric_limits<long double>::infinity();
 
   long double max_value = values[0];
-  bool all_zero = true;
-  for (size_t i = 0; i < values.size(); i++) {
-    if (std::abs(values[i]) > 1e-50) {
-      all_zero = false;
-    }
-
-    if (i > 0) {
-      if (values[i] - max_value > 1e-50) {
-        max_value = values[i];
-      }
+  for (size_t i = 1; i < values.size(); i++) {
+    if (values[i] - max_value > 1e-50) {
+      max_value = values[i];
     }
   }
-
-  if (all_zero)
-    return 0.;
 
   if (max_value == -ld_inf) {
     return max_value;
@@ -510,20 +500,6 @@ std::vector<long double> joint_logprobs(const std::vector<std::vector<long doubl
   }
 
   return next_row;
-}
-
-bool empty_probs(const MultiProbs &probs) {
-  size_t k = probs[0][0].size();
-  if (k == 1) {
-    bool empty = true;
-    for (int i : {0, 1})
-      for (int j : {0, 1})
-        empty = empty & (std::abs(probs[i][j][0]) < 1e-9);
-    if (empty) {
-      return true;
-    }
-  }
-  return false;
 }
 
 MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
@@ -887,31 +863,17 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
 
   size_t k = probs[0][0].size();
   std::vector<long double> res(k);
-  if (k == 1) {
-    bool empty = true;
-    for (int i : {0, 1})
-      for (int j : {0, 1})
-        empty = empty & (std::abs(probs[i][j][0]) < 1e-9);
-    if (empty) {
-      return res;
-    }
-  }
-
-  const long double THRESHOLD = 1e-12;
 
   for (size_t i : {0, 1}) {
     for (size_t idx = 0; idx < k; idx++) {
-      probs[i][0][idx] = logsumexp({probs[i][0][idx], probs[i][1][idx]});
+      probs[i][0][idx] = exp(probs[i][0][idx]) + exp(probs[i][1][idx]);
     }
   }
 
   StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
 
   for (size_t idx = 0; idx < k; idx++) {
-    std::vector<long double> arr = {
-        std::abs(probs[0][0][idx]) < THRESHOLD ? 0 : log(stationary_distribution[0]) + probs[0][0][idx],
-        std::abs(probs[1][0][idx]) < THRESHOLD ? 0 : log(stationary_distribution[1]) + probs[1][0][idx]};
-    res[idx] = logsumexp(arr);
+    res[idx] = log(stationary_distribution[0] * probs[0][0][idx] + stationary_distribution[1] * probs[1][0][idx]);
   }
 
   return res;

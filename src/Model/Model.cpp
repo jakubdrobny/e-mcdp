@@ -58,11 +58,8 @@ long double Model::eval_pvalue(long long overlap_count) {
 std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
                                                              std::vector<Interval> query_intervals,
                                                              const MarkovChain &markov_chain, long long chr_size) {
-  if (ref_intervals.empty())
-    return {0.};
-
   int m = ref_intervals.size();
-  if (ref_intervals[0].begin == 0) {
+  if (m && ref_intervals[0].begin == 0) {
     logger.warn("First reference interval starts with zero, changing to one!");
     ref_intervals[0].begin = 1;
     if (ref_intervals[0].end - ref_intervals[0].begin == 0) {
