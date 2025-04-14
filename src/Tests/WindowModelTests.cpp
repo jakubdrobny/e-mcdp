@@ -140,7 +140,7 @@ TEST_F(WindowModelRunTest, G24_TEST) {
   ASSERT_EQ(resultsNaive, resultsTest);
 }
 
-TEST_F(WindowModelRunTest, DISABLED_SmallTest) {
+TEST_F(WindowModelRunTest, SmallTest) {
   std::vector<Interval> ref_ints = {{"chr1", 4391, 4491}, {"chr1", 4551, 4651}};
   std::vector<Interval> query_ints = {{"chr1", 4465, 4565}};
   std::vector<Interval> windows = {{"chr1", 4400, 4600}, {"chr1", 4500, 4600}};
@@ -152,7 +152,7 @@ TEST_F(WindowModelRunTest, DISABLED_SmallTest) {
   std::vector<WindowResult> resultsTest =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::TEST).run();
   ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
+  ASSERT_EQ(resultsFast, resultsTest);
 }
 
 TEST(LargeWindowModelTest, LargeTests) {
@@ -177,7 +177,7 @@ TEST(LargeWindowModelTest, LargeTests) {
   ref_intervals = remove_empty_intervals(ref_intervals);
   query_intervals = remove_empty_intervals(query_intervals);
 
-  std::vector<std::pair<long long, long long>> window_confs{{2000, 1000}, {10000, 1000}};
+  std::vector<std::pair<long long, long long>> window_confs{{2000, 1000}, {10000, 1000}, {200, 100}, {750, 150}};
   for (auto conf : window_confs) {
     args.windows_size = conf.first;
     args.windows_step = conf.second;

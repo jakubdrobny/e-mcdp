@@ -379,11 +379,8 @@ SectionProbs WindowModel::eval_probs_single_section_new(const Section &section, 
 
   long long new_section_end = section.get_end();
   if (section.get_last_ref_interval_intersected() && !ref_intervals.empty()) {
+    new_section_end = ref_intervals.back().get_begin();
     ref_intervals.pop_back();
-    if (ref_intervals.empty())
-      new_section_end = section.get_begin();
-    else
-      new_section_end = ref_intervals.back().get_end();
   }
 
   MultiProbs probs = eval_probs_single_chr_direct_new(ref_intervals, new_section_start, new_section_end, markov_chain);
@@ -405,7 +402,7 @@ void WindowModel::correct_ends(Section &section, const MarkovChain &markov_chain
   if (section.get_last_ref_interval_intersected() &&
       (!section.get_first_ref_interval_intersected() ||
        (section.get_first_ref_interval_intersected() && ref_intervals.size() > 1))) {
-    long long new_section_start = ref_intervals[ref_intervals.size() - 2].get_end();
+    long long new_section_start = ref_intervals.back().get_begin();
     new_probs = joint_logprobs(new_probs, eval_probs_single_chr_direct_new({ref_intervals.back()}, new_section_start,
                                                                            section.get_end(), markov_chain));
   }
