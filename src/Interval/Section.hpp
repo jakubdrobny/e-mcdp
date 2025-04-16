@@ -29,6 +29,7 @@ public:
   void set_probs(const SectionProbs &new_probs);
   long long get_overlap_count() const;
   void set_overlap_count(long long new_overlap_count);
+  bool operator==(const Section &other) const;
 
 private:
   bool first_ref_interval_intersected, last_ref_interval_intersected, first_query_interval_intersected,

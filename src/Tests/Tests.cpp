@@ -214,3 +214,30 @@ TEST(SplitWindowsTest, IntervalOverflow) {
   EXPECT_EQ(result.get_spans()[0], Interval("chr1", 0, 1));
   EXPECT_EQ(result.get_spans()[1], Interval("chr1", 1, 2));
 }
+
+TEST(SplitWindowsTest, EdgeCase1) {
+  std::vector<Interval> ref_ints = {{"chr1", 2146, 2246}, {"chr1", 2678, 2778}};
+  std::vector<Interval> query_ints = {
+      {"chr1", 2079, 2179}, {"chr1", 2325, 2425}, {"chr1", 2486, 2586}, {"chr1", 2678, 2778}};
+  std::vector<Interval> windows = {
+      {"chr1", 1500, 2250}, {"chr1", 1650, 2400}, {"chr1", 1800, 2550}, {"chr1", 1950, 2700}, {"chr1", 2100, 2850}};
+  WindowSectionSplitResult result = split_windows_into_non_overlapping_sections(windows, ref_ints, query_ints);
+
+  ASSERT_EQ(result.get_sections().size(), 9);
+  EXPECT_EQ(result.get_sections()[0], Section("chr1", 1500, 1650, false, false, false, false));
+  EXPECT_EQ(result.get_sections()[1], Section("chr1", 1650, 1800, false, false, false, false));
+  EXPECT_EQ(result.get_sections()[2], Section("chr1", 1800, 1950, false, false, false, false));
+  EXPECT_EQ(result.get_sections()[3], Section("chr1", 1950, 2100, false, false, false, true));
+  EXPECT_EQ(result.get_sections()[4], Section("chr1", 2100, 2250, false, false, true, false));
+  EXPECT_EQ(result.get_sections()[5], Section("chr1", 2250, 2400, false, false, false, true));
+  EXPECT_EQ(result.get_sections()[6], Section("chr1", 2400, 2550, false, false, true, true));
+  EXPECT_EQ(result.get_sections()[7], Section("chr1", 2550, 2700, false, true, true, true));
+  EXPECT_EQ(result.get_sections()[8], Section("chr1", 2700, 2850, true, false, true, false));
+
+  ASSERT_EQ(result.get_spans().size(), 5);
+  EXPECT_EQ(result.get_spans()[0], Interval("chr1", 0, 5));
+  EXPECT_EQ(result.get_spans()[1], Interval("chr1", 1, 6));
+  EXPECT_EQ(result.get_spans()[2], Interval("chr1", 2, 7));
+  EXPECT_EQ(result.get_spans()[3], Interval("chr1", 3, 8));
+  EXPECT_EQ(result.get_spans()[4], Interval("chr1", 4, 9));
+}

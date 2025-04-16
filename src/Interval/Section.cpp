@@ -65,3 +65,11 @@ std::ostream &operator<<(std::ostream &os, const Section &section) {
 
   return os;
 }
+
+bool Section::operator==(const Section &other) const {
+  return this->chr_name == other.chr_name && this->begin == other.begin && this->end == other.end &&
+         this->first_ref_interval_intersected == other.first_ref_interval_intersected &&
+         this->last_ref_interval_intersected == other.last_ref_interval_intersected &&
+         this->first_query_interval_intersected == other.first_query_interval_intersected &&
+         this->last_query_interval_intersected == other.last_query_interval_intersected;
+}

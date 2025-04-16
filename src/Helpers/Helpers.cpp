@@ -827,18 +827,14 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
       if (!event.end) {
         opened++;
         spans[event.idx].begin = sections.size();
-        start_ref_int = currently_opened_ref_interval;
-        start_query_int = currently_opened_query_interval;
       } else {
         opened--;
         spans[event.idx].chr_name = chr_name;
         spans[event.idx].end = sections.size();
-
-        if (start_ref_int.length() != 0 && start_ref_int.get_end() <= event.pos)
-          start_ref_int = Interval("", -1, -1);
-        if (start_query_int.length() != 0 && start_query_int.get_end() <= event.pos)
-          start_query_int = Interval("", -1, -1);
       }
+
+      start_ref_int = currently_opened_ref_interval;
+      start_query_int = currently_opened_query_interval;
     }
   }
 

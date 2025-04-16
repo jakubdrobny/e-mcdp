@@ -258,11 +258,17 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
     Interval span = spans[windows_idx];
     Section section = sections[span.begin];
 
+    // std::cout << "starting a window: " << windows[windows_idx] << "\n";
+
     // merge probs for sections
     for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
       Section next_section = sections[sections_idx];
+      // std::cout << "section1:\n" << section << "\n";
+      // std::cout << "section2:\n" << next_section << "\n";
       section = join_sections(section, next_section, markov_chain);
     }
+
+    // std::cout << "final_section:\n" << section << "\n";
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =
@@ -356,7 +362,9 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
       section = join_sections_new(section, next_section, markov_chain);
     }
 
+    // std::cout << section << "\n";
     correct_ends(section, markov_chain);
+    // std::cout << section << "\n";
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =
@@ -382,6 +390,9 @@ SectionProbs WindowModel::eval_probs_single_section_new(const Section &section, 
     new_section_end = ref_intervals.back().get_begin();
     ref_intervals.pop_back();
   }
+  // std::cout << new_section_start << " " << new_section_end << " start_end\n";
+  // std::cout << section.get_begin() << " " << section.get_end() << ": " << to_string(section.get_ref_intervals())
+  //<< "\n";
 
   MultiProbs probs = eval_probs_single_chr_direct_new(ref_intervals, new_section_start, new_section_end, markov_chain);
 
@@ -392,12 +403,14 @@ void WindowModel::correct_ends(Section &section, const MarkovChain &markov_chain
   std::vector<Interval> ref_intervals = section.get_ref_intervals();
   MultiProbs new_probs = section.get_probs().get_except_first_and_last();
 
+  // print_multiprobs(new_probs);
   if (section.get_first_ref_interval_intersected() && !ref_intervals.empty()) {
     long long new_section_end = ref_intervals.front().get_end();
     new_probs = joint_logprobs(
         eval_probs_single_chr_direct_new({ref_intervals.front()}, section.get_begin(), new_section_end, markov_chain),
         new_probs);
   }
+  // print_multiprobs(new_probs);
 
   if (section.get_last_ref_interval_intersected() &&
       (!section.get_first_ref_interval_intersected() ||
