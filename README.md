@@ -23,7 +23,7 @@ The program provides a set of flags to operate it:
 - `--windows.path <path-to-your-windows-file>` - required with the `--windows.source file` flag, tells the program the location of the window set file
 - `--windows.size` - required with the `--windows.source <basic|dense>` flags, tells the program the size of windows to generate
 - `--windows.step` - required with the `--windows.source dense` flag, tells the program the shift when generating overlapping set of windows
-- `--algorithm <naive|fast>` - defaults to naive, is used to choose algorithm when evaluating windows
+- `--algorithm <naive|slow_bad|slow|fast_bad|fast>` - defaults to naive, is used to choose algorithm when evaluating windows
 
 From here you can either run the executable with flags manually or by using any of the `Makefile` directives:
 
@@ -52,12 +52,6 @@ make run_simple_pvalue REF_PATH=data/02-synth-data/g24_8.ref.tsv QUERY_PATH=data
 
 - make `CMakeLists.txt` file so everyone can use it easily
 - add --h/--help flag and print help info for all flags
-- implement a flow to run fast algorithm for overlapping sets of windows:
-  - specify --algorithm naive/fast
-  - split overlapping windows into sections
-  - calculate all sections (4 sets of probs, starting/ending in 0/1)
-  - write a function to merge 4 sets of probs for 2 sections
-  - for each window merge necessary sections
 
 > [1] Askar Gafurov, Broňa Brejová, Paul Medvedev,
 > Markov chains improve the significance computation of overlapping genome annotations,
