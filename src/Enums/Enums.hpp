@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-enum class Algorithm { NAIVE, FAST, TEST };
+enum class Algorithm { NAIVE, SLOW_BAD, SLOW, FAST_BAD, FAST };
 enum class Statistic { OVERLAPS, BASES };
 
 template <typename T> extern bool validate_enum(const std::map<std::string, T> &stringToEnum, const std::string &str) {
