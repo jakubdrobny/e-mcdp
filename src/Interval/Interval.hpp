@@ -9,7 +9,7 @@
 class Interval {
 public:
   std::string chr_name;
-  long long begin, end;
+  long long begin = 0, end = 0;
 
   Interval();
   Interval(const std::string &chr_name, const long long &begin, const long long &end);

@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+MarkovChain::MarkovChain() {}
+
 MarkovChain::MarkovChain(TransitionMatrix T, TransitionMatrix T_MOD) : T(T), T_MOD(T_MOD) {
   this->calculate_stationary_distribution();
 }

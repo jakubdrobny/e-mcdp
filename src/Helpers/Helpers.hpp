@@ -117,6 +117,9 @@ void print_multiprobs(const MultiProbs &probs);
 Section join_sections(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
 Section join_sections_new(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
 
+Section join_sections_segtree(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
+Section join_sections_new_segtree(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
+
 bool compare_logprobs_vectors(const std::vector<long double> &a, const std::vector<long double> &b,
                               long double epsilon = 1e-6);
 

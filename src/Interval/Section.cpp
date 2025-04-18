@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 
+Section::Section() {}
+
 Section::Section(const std::string &chr_name, const long long &begin, const long long &end,
                  bool first_ref_interval_intersected, bool last_ref_interval_intersected,
                  bool first_query_interval_intersected, bool last_query_interval_intersected)

@@ -2,6 +2,7 @@
 #include "../Helpers/Helpers.hpp"
 #include "../Interval/Section.hpp"
 #include "../Results/WindowResult.hpp"
+#include "../SegTree/SegTree.hpp"
 #include <algorithm>
 #include <iostream>
 #include <set>
@@ -165,14 +166,22 @@ std::vector<WindowResult> WindowModel::run() {
       chromosome_probs_by_window =
           probs_by_window_single_chr_naive(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
                                            query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
+    } else if (algorithm == Algorithm::SLOW_BAD) {
+      chromosome_probs_by_window =
+          probs_by_window_single_chr_smarter(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
+                                             query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx], false);
+    } else if (algorithm == Algorithm::SLOW) {
+      chromosome_probs_by_window = probs_by_window_single_chr_smarter_new(
+          windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx], query_intervals_by_chr[chr_sizes_idx],
+          chr_sizes[chr_sizes_idx], false);
+    } else if (algorithm == Algorithm::FAST_BAD) {
+      chromosome_probs_by_window =
+          probs_by_window_single_chr_smarter(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
+                                             query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
     } else if (algorithm == Algorithm::FAST) {
       chromosome_probs_by_window =
           probs_by_window_single_chr_smarter(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
                                              query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
-    } else if (algorithm == Algorithm::TEST) {
-      chromosome_probs_by_window =
-          probs_by_window_single_chr_smarter_new(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
-                                                 query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
     } else {
       logger.error("invalid algorithm.");
       exit(1);
@@ -217,7 +226,8 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_naive(
 
 std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
     const std::vector<Interval> &windows, const std::vector<Interval> &ref_intervals,
-    const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry) {
+    const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry,
+    bool use_segtree) {
   if (windows.empty()) {
     return {};
   }
@@ -228,6 +238,7 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
       split_windows_into_non_overlapping_sections(windows, ref_intervals, query_intervals);
   std::vector<Section> sections = windowSectionSplitResult.get_sections();
   std::vector<Interval> spans = windowSectionSplitResult.get_spans();
+
   // 2. load intervals into sections, will be fast since both are
   // non-overlapping
   std::vector<std::vector<Interval>> ref_intervals_by_section = get_windows_intervals<Section>(sections, ref_intervals),
@@ -246,35 +257,30 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
     long long current_overlap_count = count_overlaps_single_chr(sections[sections_idx].get_ref_intervals(),
                                                                 sections[sections_idx].get_query_intervals());
     sections[sections_idx].set_overlap_count(current_overlap_count);
-    // std::cout << sections_idx << " " << sections[sections_idx].get_chr_name() << " "
-    //           << sections[sections_idx].get_begin() << " " << sections[sections_idx].get_end() << "\n";
   }
+
+  // 4.1 make a segment tree on top of the sections if should
+  SegTree<Section> st =
+      use_segtree ? SegTree<Section>(join_sections_segtree, Section(), sections, markov_chain) : SegTree<Section>();
 
   // 5. merge section probs for each window
   std::vector<WindowResult> probs_by_window(windows.size());
 
   for (size_t windows_idx = 0; windows_idx < windows.size(); windows_idx++) {
     Interval span = spans[windows_idx];
-    Section section = sections[span.begin];
+    Section section;
 
-    // std::cout << "starting a window: " << windows[windows_idx] << "\n";
+    if (!use_segtree) {
+      section = sections[span.begin];
 
-    // merge probs for sections
-    for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
-      Section next_section = sections[sections_idx];
-      // std::cout << "section1:\n" << section << "\n";
-      // std::cout << "section2:\n" << next_section << "\n";
-      section = join_sections(section, next_section, markov_chain);
-      // std::cout << "new_section:\n" << section << "\n";
-      // SectionProbs probs = eval_probs_single_section(section, markov_chain);
-      // Section testSec = section;
-      // testSec.set_probs(probs);
-      // std::cout << "are they the same? this will tell youuuuuu: " << (testSec == section ? "YES SIR" : "nopings")
-      //           << "\n";
-      // std::cout << testSec << "\n";
+      // merge probs for sections
+      for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
+        Section next_section = sections[sections_idx];
+        section = join_sections(section, next_section, markov_chain);
+      }
+    } else {
+      section = st.query(span.begin, span.end);
     }
-
-    // std::cout << "final_section:\n" << section << "\n";
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =
@@ -328,7 +334,8 @@ WindowModel::get_windows_intervals<Section>(const std::vector<Section> &sections
 
 std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
     const std::vector<Interval> &windows, const std::vector<Interval> &ref_intervals,
-    const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry) {
+    const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry,
+    bool use_segtree) {
   if (windows.empty()) {
     return {};
   }
@@ -363,27 +370,30 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
     sections[sections_idx].set_overlap_count(current_overlap_count);
   }
 
+  // 4.1 make a segment tree on top of the sections if should
+  SegTree<Section> st =
+      use_segtree ? SegTree<Section>(join_sections_segtree, Section(), sections, markov_chain) : SegTree<Section>();
+
   // 5. merge section probs for each window
   std::vector<WindowResult> probs_by_window(windows.size());
 
   for (size_t windows_idx = 0; windows_idx < windows.size(); windows_idx++) {
     Interval span = spans[windows_idx];
-    Section section = sections[span.begin];
+    Section section;
 
-    // std::cout << "starting a window: " << windows[windows_idx] << "\n";
+    if (!use_segtree) {
+      section = sections[span.begin];
 
-    // merge probs for sections
-    for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
-      Section next_section = sections[sections_idx];
-      // std::cout << "section1:\n" << section << "\n";
-      // std::cout << "section2:\n" << next_section << "\n";
-      section = join_sections_new(section, next_section, markov_chain);
-      // std::cout << "new_section:\n" << section << "\n";
+      // merge probs for sections
+      for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
+        Section next_section = sections[sections_idx];
+        section = join_sections_new(section, next_section, markov_chain);
+      }
+    } else {
+      section = st.query(span.begin, span.end);
     }
 
-    // std::cout << section << "\n";
     correct_ends(section, markov_chain);
-    // std::cout << section << "\n";
 
     // merge the final 4 sets of probs for window into one
     std::vector<long double> cur_windows_single_probs =

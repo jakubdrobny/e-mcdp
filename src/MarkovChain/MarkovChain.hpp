@@ -10,6 +10,7 @@ using StationaryDistribution = std::array<long double, 2>;
 
 class MarkovChain {
 public:
+  MarkovChain();
   MarkovChain(TransitionMatrix T, TransitionMatrix T_MOD, StationaryDistribution stationary_distribution);
   MarkovChain(TransitionMatrix T, TransitionMatrix T_MOD);
   MarkovChain(long long chr_len, const std::vector<Interval> &query_intervals);

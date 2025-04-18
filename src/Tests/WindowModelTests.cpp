@@ -36,12 +36,18 @@ TEST_F(WindowModelRunTest, NonOverlappingWindows) {
 
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsSlowBad);
+  ASSERT_EQ(resultsNaive, resultsSlow);
+  ASSERT_EQ(resultsNaive, resultsFastBad);
   ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST_F(WindowModelRunTest, EmptySectionMerge) {
@@ -50,12 +56,19 @@ TEST_F(WindowModelRunTest, EmptySectionMerge) {
 
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsSlowBad);
+  ASSERT_EQ(resultsNaive, resultsSlowBad);
+  ASSERT_EQ(resultsNaive, resultsSlow);
+  ASSERT_EQ(resultsNaive, resultsFastBad);
   ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST_F(WindowModelRunTest, EmptyWindow) {
@@ -64,12 +77,18 @@ TEST_F(WindowModelRunTest, EmptyWindow) {
 
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, ref_intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsSlowBad);
+  ASSERT_EQ(resultsNaive, resultsSlow);
+  ASSERT_EQ(resultsNaive, resultsFastBad);
   ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST_F(WindowModelRunTest, OverflowingIntervals) {
@@ -81,12 +100,18 @@ TEST_F(WindowModelRunTest, OverflowingIntervals) {
 
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsSlowBad);
+  ASSERT_EQ(resultsNaive, resultsSlow);
+  ASSERT_EQ(resultsNaive, resultsFastBad);
   ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST_F(WindowModelRunTest, NestedWindows) {
@@ -97,12 +122,18 @@ TEST_F(WindowModelRunTest, NestedWindows) {
 
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsSlowBad);
+  ASSERT_EQ(resultsNaive, resultsSlow);
+  ASSERT_EQ(resultsNaive, resultsFastBad);
   ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST_F(WindowModelRunTest, LongOverflow) {
@@ -113,12 +144,18 @@ TEST_F(WindowModelRunTest, LongOverflow) {
 
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, _intervals, query_intervals, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsSlowBad);
+  ASSERT_EQ(resultsNaive, resultsSlow);
+  ASSERT_EQ(resultsNaive, resultsFastBad);
   ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST_F(WindowModelRunTest, G24_TEST) {
@@ -132,12 +169,18 @@ TEST_F(WindowModelRunTest, G24_TEST) {
   ChrSizesMap chr_sizes_map = {{"chr1", 3000}};
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::TEST).run();
+  ASSERT_EQ(resultsNaive, resultsSlowBad);
+  ASSERT_EQ(resultsNaive, resultsSlow);
+  ASSERT_EQ(resultsNaive, resultsFastBad);
   ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
 }
 
 TEST_F(WindowModelRunTest, SmallTest) {
@@ -160,13 +203,19 @@ TEST_F(WindowModelRunTest, SmallTest) {
   ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::TEST).run();
   for (size_t i = 0; i < resultsNaive.size(); i++) {
+    ASSERT_EQ(resultsNaive[i], resultsSlowBad[i]);
+    ASSERT_EQ(resultsNaive[i], resultsSlow[i]);
+    ASSERT_EQ(resultsNaive[i], resultsFastBad[i]);
     ASSERT_EQ(resultsNaive[i], resultsFast[i]);
-    ASSERT_EQ(resultsNaive[i], resultsTest[i]);
   }
 }
 
@@ -192,13 +241,19 @@ TEST_F(WindowModelRunTest, SmallTest2) {
   ChrSizesMap chr_sizes_map = {{"chr1", 30000}};
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsSlowBad =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::SLOW_BAD).run();
+  std::vector<WindowResult> resultsSlow =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::SLOW).run();
+  std::vector<WindowResult> resultsFastBad =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST_BAD).run();
   std::vector<WindowResult> resultsFast =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST).run();
-  std::vector<WindowResult> resultsTest =
-      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::TEST).run();
   for (size_t i = 0; i < resultsNaive.size(); i++) {
+    ASSERT_EQ(resultsNaive[i], resultsSlowBad[i]);
+    ASSERT_EQ(resultsNaive[i], resultsSlow[i]);
+    ASSERT_EQ(resultsNaive[i], resultsFastBad[i]);
     ASSERT_EQ(resultsNaive[i], resultsFast[i]);
-    ASSERT_EQ(resultsNaive[i], resultsTest[i]);
   }
 }
 
@@ -225,7 +280,7 @@ TEST(LargeWindowModelTest, LargeTests) {
   query_intervals = remove_empty_intervals(query_intervals);
 
   std::vector<std::pair<long long, long long>> window_confs{
-      {2000, 1000}, {10000, 1000}, {200, 100}, {750, 150}, {2100, 70}};
+      {2000, 1000}, {10000, 1000}, {200, 100}, {750, 150}, {2100, 140}};
   for (auto conf : window_confs) {
     args.windows_size = conf.first;
     args.windows_step = conf.second;
@@ -238,14 +293,20 @@ TEST(LargeWindowModelTest, LargeTests) {
 
       std::vector<WindowResult> resultsNaive =
           WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::NAIVE).run();
+      std::vector<WindowResult> resultsSlowBad =
+          WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::SLOW_BAD).run();
+      std::vector<WindowResult> resultsSlow =
+          WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::SLOW).run();
+      std::vector<WindowResult> resultsFastBad =
+          WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::FAST_BAD).run();
       std::vector<WindowResult> resultsFast =
           WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::FAST).run();
-      std::vector<WindowResult> resultsTest =
-          WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::TEST).run();
 
       for (size_t i = 0; i < resultsNaive.size(); i++) {
+        ASSERT_EQ(resultsNaive[i], resultsSlowBad[i]);
+        ASSERT_EQ(resultsNaive[i], resultsSlow[i]);
+        ASSERT_EQ(resultsNaive[i], resultsFastBad[i]);
         ASSERT_EQ(resultsNaive[i], resultsFast[i]);
-        ASSERT_EQ(resultsNaive[i], resultsTest[i]);
       }
     }
   }

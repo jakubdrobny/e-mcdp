@@ -37,11 +37,13 @@ public:
   std::vector<WindowResult> probs_by_window_single_chr_smarter(const std::vector<Interval> &windows,
                                                                const std::vector<Interval> &windows_ref_intervals,
                                                                const std::vector<Interval> &windows_query_intervals,
-                                                               const std::pair<std::string, long long> chr_size_entry);
+                                                               const std::pair<std::string, long long> chr_size_entry,
+                                                               bool use_segtree = true);
 
   std::vector<WindowResult> probs_by_window_single_chr_smarter_new(
       const std::vector<Interval> &windows, const std::vector<Interval> &ref_intervals,
-      const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry);
+      const std::vector<Interval> &query_intervals, const std::pair<std::string, long long> chr_size_entry,
+      bool use_segtree = true);
 
 private:
   SectionProbs eval_probs_single_section(const Section &section, const MarkovChain &markov_chain);

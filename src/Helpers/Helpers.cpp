@@ -1120,4 +1120,18 @@ template <class T> std::ostream &operator<<(std::ostream &out, const std::vector
   return out;
 }
 
-template std::ostream &operator<< <Interval>(std::ostream &, const std::vector<Interval> &);
+Section join_sections_segtree(const Section &section1, const Section &section2, const MarkovChain &markov_chain) {
+  if (section1.length() == 0)
+    return section2;
+  if (section2.length() == 0)
+    return section1;
+  return join_sections(section1, section2, markov_chain);
+}
+
+Section join_sections_new_segtree(const Section &section1, const Section &section2, const MarkovChain &markov_chain) {
+  if (section1.length() == 0)
+    return section2;
+  if (section2.length() == 0)
+    return section1;
+  return join_sections_new(section1, section2, markov_chain);
+}
