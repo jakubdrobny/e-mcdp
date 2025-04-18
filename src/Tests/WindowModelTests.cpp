@@ -141,11 +141,22 @@ TEST_F(WindowModelRunTest, G24_TEST) {
 }
 
 TEST_F(WindowModelRunTest, SmallTest) {
-  std::vector<Interval> ref_ints = {{"chr1", 2146, 2246}, {"chr1", 2678, 2778}};
-  std::vector<Interval> query_ints = {
-      {"chr1", 2079, 2179}, {"chr1", 2325, 2425}, {"chr1", 2486, 2586}, {"chr1", 2678, 2778}};
+  std::vector<Interval> ref_ints = {
+      {"chr1", 4254, 4354}, {"chr1", 4391, 4491}, {"chr1", 4551, 4651}, {"chr1", 4779, 4879}, {"chr1", 5046, 5146},
+      {"chr1", 5365, 5465}, {"chr1", 5506, 5606}, {"chr1", 5667, 5767}, {"chr1", 5792, 5892}, {"chr1", 6139, 6239}};
+  std::vector<Interval> query_ints = {{"chr1", 4284, 4384}, {"chr1", 4465, 4565}, {"chr1", 4721, 4821},
+                                      {"chr1", 4890, 4990}, {"chr1", 5073, 5173}, {"chr1", 5714, 5814},
+                                      {"chr1", 6150, 6250}, {"chr1", 6261, 6361}};
   std::vector<Interval> windows = {
-      {"chr1", 1500, 2250}, {"chr1", 1650, 2400}, {"chr1", 1800, 2550}, {"chr1", 1950, 2700}, {"chr1", 2100, 2850}};
+      {"chr1", 2200, 4300}, {"chr1", 2250, 4350}, {"chr1", 2300, 4400}, {"chr1", 2350, 4450}, {"chr1", 2400, 4500},
+      {"chr1", 2450, 4550}, {"chr1", 2500, 4600}, {"chr1", 2550, 4650}, {"chr1", 2600, 4700}, {"chr1", 2650, 4750},
+      {"chr1", 2700, 4800}, {"chr1", 2750, 4850}, {"chr1", 2800, 4900}, {"chr1", 2850, 4950}, {"chr1", 2900, 5000},
+      {"chr1", 2950, 5050}, {"chr1", 3000, 5100}, {"chr1", 3050, 5150}, {"chr1", 3100, 5200}, {"chr1", 3150, 5250},
+      {"chr1", 3200, 5300}, {"chr1", 3250, 5350}, {"chr1", 3300, 5400}, {"chr1", 3350, 5450}, {"chr1", 3400, 5500},
+      {"chr1", 3450, 5550}, {"chr1", 3500, 5600}, {"chr1", 3550, 5650}, {"chr1", 3600, 5700}, {"chr1", 3650, 5750},
+      {"chr1", 3700, 5800}, {"chr1", 3750, 5850}, {"chr1", 3800, 5900}, {"chr1", 3850, 5950}, {"chr1", 3900, 6000},
+      {"chr1", 3950, 6050}, {"chr1", 4000, 6100}, {"chr1", 4050, 6150}, {"chr1", 4100, 6200}, {"chr1", 4150, 6250},
+      {"chr1", 4200, 6300}, {"chr1", 4250, 6350}, {"chr1", 4300, 6400}};
   ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
@@ -153,8 +164,42 @@ TEST_F(WindowModelRunTest, SmallTest) {
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST).run();
   std::vector<WindowResult> resultsTest =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::TEST).run();
-  // ASSERT_EQ(resultsNaive, resultsFast);
-  ASSERT_EQ(resultsNaive, resultsTest);
+  for (size_t i = 0; i < resultsNaive.size(); i++) {
+    ASSERT_EQ(resultsNaive[i], resultsFast[i]);
+    ASSERT_EQ(resultsNaive[i], resultsTest[i]);
+  }
+}
+
+TEST_F(WindowModelRunTest, SmallTest2) {
+  std::vector<Interval> ref_ints = {{"chr1", 26759, 26859}, {"chr1", 27335, 27435}, {"chr1", 27611, 27711},
+                                    {"chr1", 27813, 27913}, {"chr1", 28005, 28105}, {"chr1", 28150, 28250}};
+  std::vector<Interval> query_ints = {{"chr1", 26226, 26326}, {"chr1", 26386, 26486}, {"chr1", 26571, 26671},
+                                      {"chr1", 26765, 26865}, {"chr1", 26996, 27096}, {"chr1", 27192, 27292},
+                                      {"chr1", 27387, 27487}, {"chr1", 27518, 27618}, {"chr1", 27718, 27818},
+                                      {"chr1", 27922, 28022}, {"chr1", 28072, 28172}, {"chr1", 28209, 28309}};
+  std::vector<Interval> windows = {
+      {"chr1", 24050, 26150}, {"chr1", 24100, 26200}, {"chr1", 24150, 26250}, {"chr1", 24200, 26300},
+      {"chr1", 24250, 26350}, {"chr1", 24300, 26400}, {"chr1", 24350, 26450}, {"chr1", 24400, 26500},
+      {"chr1", 24450, 26550}, {"chr1", 24500, 26600}, {"chr1", 24550, 26650}, {"chr1", 24600, 26700},
+      {"chr1", 24650, 26750}, {"chr1", 24700, 26800}, {"chr1", 24750, 26850}, {"chr1", 24800, 26900},
+      {"chr1", 24850, 26950}, {"chr1", 24900, 27000}, {"chr1", 24950, 27050}, {"chr1", 25000, 27100},
+      {"chr1", 25050, 27150}, {"chr1", 25100, 27200}, {"chr1", 25150, 27250}, {"chr1", 25200, 27300},
+      {"chr1", 25250, 27350}, {"chr1", 25300, 27400}, {"chr1", 25350, 27450}, {"chr1", 25400, 27500},
+      {"chr1", 25450, 27550}, {"chr1", 25500, 27600}, {"chr1", 25550, 27650}, {"chr1", 25600, 27700},
+      {"chr1", 25650, 27750}, {"chr1", 25700, 27800}, {"chr1", 25750, 27850}, {"chr1", 25800, 27900},
+      {"chr1", 25850, 27950}, {"chr1", 25900, 28000}, {"chr1", 25950, 28050}, {"chr1", 26000, 28100},
+      {"chr1", 26050, 28150}, {"chr1", 26100, 28200}, {"chr1", 26150, 28250}};
+  ChrSizesMap chr_sizes_map = {{"chr1", 30000}};
+  std::vector<WindowResult> resultsNaive =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
+  std::vector<WindowResult> resultsFast =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::FAST).run();
+  std::vector<WindowResult> resultsTest =
+      WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::TEST).run();
+  for (size_t i = 0; i < resultsNaive.size(); i++) {
+    ASSERT_EQ(resultsNaive[i], resultsFast[i]);
+    ASSERT_EQ(resultsNaive[i], resultsTest[i]);
+  }
 }
 
 TEST(LargeWindowModelTest, LargeTests) {
@@ -199,7 +244,7 @@ TEST(LargeWindowModelTest, LargeTests) {
           WindowModel(windows, ref_intervals, query_intervals, chr_sizes, Algorithm::TEST).run();
 
       for (size_t i = 0; i < resultsNaive.size(); i++) {
-        // ASSERT_EQ(resultsNaive[i], resultsFast[i]);
+        ASSERT_EQ(resultsNaive[i], resultsFast[i]);
         ASSERT_EQ(resultsNaive[i], resultsTest[i]);
       }
     }

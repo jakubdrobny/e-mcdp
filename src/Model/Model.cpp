@@ -2,6 +2,7 @@
 #include "../Logger/Logger.hpp"
 #include "../MarkovChain/MarkovChain.hpp"
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <omp.h>
 

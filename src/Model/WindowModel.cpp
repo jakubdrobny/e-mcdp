@@ -228,7 +228,6 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
       split_windows_into_non_overlapping_sections(windows, ref_intervals, query_intervals);
   std::vector<Section> sections = windowSectionSplitResult.get_sections();
   std::vector<Interval> spans = windowSectionSplitResult.get_spans();
-
   // 2. load intervals into sections, will be fast since both are
   // non-overlapping
   std::vector<std::vector<Interval>> ref_intervals_by_section = get_windows_intervals<Section>(sections, ref_intervals),
@@ -242,13 +241,13 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   for (size_t sections_idx = 0; sections_idx < sections.size(); sections_idx++) {
     sections[sections_idx].set_ref_intervals(ref_intervals_by_section[sections_idx]);
     sections[sections_idx].set_query_intervals(query_intervals_by_section[sections_idx]);
-    SectionProbs probs =
-        eval_probs_single_section(sections[sections_idx].get_ref_intervals(), sections[sections_idx].begin,
-                                  sections[sections_idx].end, markov_chain);
+    SectionProbs probs = eval_probs_single_section(sections[sections_idx], markov_chain);
     sections[sections_idx].set_probs(probs);
     long long current_overlap_count = count_overlaps_single_chr(sections[sections_idx].get_ref_intervals(),
                                                                 sections[sections_idx].get_query_intervals());
     sections[sections_idx].set_overlap_count(current_overlap_count);
+    // std::cout << sections_idx << " " << sections[sections_idx].get_chr_name() << " "
+    //           << sections[sections_idx].get_begin() << " " << sections[sections_idx].get_end() << "\n";
   }
 
   // 5. merge section probs for each window
@@ -266,6 +265,13 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
       // std::cout << "section1:\n" << section << "\n";
       // std::cout << "section2:\n" << next_section << "\n";
       section = join_sections(section, next_section, markov_chain);
+      // std::cout << "new_section:\n" << section << "\n";
+      // SectionProbs probs = eval_probs_single_section(section, markov_chain);
+      // Section testSec = section;
+      // testSec.set_probs(probs);
+      // std::cout << "are they the same? this will tell youuuuuu: " << (testSec == section ? "YES SIR" : "nopings")
+      //           << "\n";
+      // std::cout << testSec << "\n";
     }
 
     // std::cout << "final_section:\n" << section << "\n";
@@ -280,24 +286,32 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter(
   return probs_by_window;
 }
 
-SectionProbs WindowModel::eval_probs_single_section(const std::vector<Interval> &ref_intervals, long long section_start,
-                                                    long long section_end, const MarkovChain &markov_chain) {
-  MultiProbs probs_normal = eval_probs_single_chr_direct_new(ref_intervals, section_start, section_end, markov_chain);
+SectionProbs WindowModel::eval_probs_single_section(const Section &section, const MarkovChain &markov_chain) {
+  const std::vector<Interval> &ref_intervals = section.get_ref_intervals();
+  MultiProbs probs_normal =
+      eval_probs_single_chr_direct_new(ref_intervals, section.get_begin(), section.get_end(), markov_chain);
 
   std::vector<Interval> ref_intervals_except_last(ref_intervals.begin(),
-                                                  ref_intervals.end() - (!ref_intervals.empty()));
-  long long new_section_end = ref_intervals_except_last.empty() ? section_start : ref_intervals_except_last.back().end;
+                                                  ref_intervals.end() - (section.get_last_ref_interval_intersected()));
+  long long new_section_end =
+      section.get_last_ref_interval_intersected() ? ref_intervals.back().get_begin() : section.get_end();
   MultiProbs probs_except_last =
-      eval_probs_single_chr_direct_new(ref_intervals_except_last, section_start, new_section_end, markov_chain);
+      eval_probs_single_chr_direct_new(ref_intervals_except_last, section.get_begin(), new_section_end, markov_chain);
 
-  std::vector<Interval> ref_intervals_except_first(ref_intervals.begin() + (!ref_intervals.empty()),
-                                                   ref_intervals.end());
-  long long new_section_start = ref_intervals.empty() ? section_start : ref_intervals[0].end;
+  std::vector<Interval> ref_intervals_except_first(
+      ref_intervals.begin() + (section.get_first_ref_interval_intersected()), ref_intervals.end());
+  long long new_section_start =
+      section.get_first_ref_interval_intersected() ? ref_intervals.front().get_end() : section.get_begin();
   MultiProbs probs_except_first =
-      eval_probs_single_chr_direct_new(ref_intervals_except_first, new_section_start, section_end, markov_chain);
+      eval_probs_single_chr_direct_new(ref_intervals_except_first, new_section_start, section.get_end(), markov_chain);
 
   std::vector<Interval> ref_intervals_except_first_and_last(
-      ref_intervals_except_first.begin(), ref_intervals_except_first.end() - (!ref_intervals_except_first.empty()));
+      ref_intervals_except_first.begin(),
+      ref_intervals_except_first.end() -
+          (!ref_intervals_except_first.empty() && section.get_last_ref_interval_intersected()));
+  new_section_end = !ref_intervals_except_first.empty() && section.get_last_ref_interval_intersected()
+                        ? ref_intervals_except_first.back().get_begin()
+                        : section.get_end();
   MultiProbs probs_except_first_and_last = eval_probs_single_chr_direct_new(
       ref_intervals_except_first_and_last, new_section_start, new_section_end, markov_chain);
 
@@ -356,10 +370,15 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
     Interval span = spans[windows_idx];
     Section section = sections[span.begin];
 
+    // std::cout << "starting a window: " << windows[windows_idx] << "\n";
+
     // merge probs for sections
     for (long long sections_idx = span.begin + 1; sections_idx < span.end; sections_idx++) {
       Section next_section = sections[sections_idx];
+      // std::cout << "section1:\n" << section << "\n";
+      // std::cout << "section2:\n" << next_section << "\n";
       section = join_sections_new(section, next_section, markov_chain);
+      // std::cout << "new_section:\n" << section << "\n";
     }
 
     // std::cout << section << "\n";

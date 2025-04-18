@@ -9,6 +9,7 @@
 // interval is going into the next section)
 class Section : public Interval {
 public:
+  Section() {};
   Section(const std::string &chr_name, const long long &begin, const long long &end,
           bool first_ref_interval_intersected, bool last_ref_interval_intersected,
           bool first_query_interval_intersected, bool last_query_interval_intersected);

@@ -20,7 +20,7 @@ std::vector<long double> WindowResult::get_probs() const { return probs; }
 MultiProbs WindowResult::get_multi_probs() const { return multi_probs; }
 
 bool WindowResult::operator==(const WindowResult &other) const {
-  return this->window == other.window && compare_vectors_stl(this->probs, other.probs) &&
+  return this->window == other.window && compare_logprobs_vectors(this->probs, other.probs) &&
          this->overlap_count == other.overlap_count;
 }
 

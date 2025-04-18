@@ -71,5 +71,9 @@ bool Section::operator==(const Section &other) const {
          this->first_ref_interval_intersected == other.first_ref_interval_intersected &&
          this->last_ref_interval_intersected == other.last_ref_interval_intersected &&
          this->first_query_interval_intersected == other.first_query_interval_intersected &&
-         this->last_query_interval_intersected == other.last_query_interval_intersected;
+         this->last_query_interval_intersected == other.last_query_interval_intersected &&
+         compare_multiprobs(this->probs.get_normal(), other.probs.get_normal()) &&
+         compare_multiprobs(this->probs.get_except_first(), other.probs.get_except_first()) &&
+         compare_multiprobs(this->probs.get_except_last(), other.probs.get_except_last()) &&
+         compare_multiprobs(this->probs.get_except_first_and_last(), other.probs.get_except_first_and_last());
 }

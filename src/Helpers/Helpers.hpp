@@ -117,8 +117,10 @@ void print_multiprobs(const MultiProbs &probs);
 Section join_sections(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
 Section join_sections_new(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
 
-bool compare_vectors_stl(const std::vector<long double> &a, const std::vector<long double> &b,
-                         long double epsilon = 1e-6);
+bool compare_logprobs_vectors(const std::vector<long double> &a, const std::vector<long double> &b,
+                              long double epsilon = 1e-6);
+
+bool compare_multiprobs(const MultiProbs &a, const MultiProbs &b, long double epsilon = 1e-6);
 
 std::vector<Interval> split_intervals_into_ones(const std::vector<Interval> &intervals);
 
