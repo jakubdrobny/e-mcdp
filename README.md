@@ -4,13 +4,20 @@ A tool built on top of mc-overlaps [1] (mcdp2 [2] predecessor), allowing for col
 
 ## How to use this?
 
-Make sure to have [make](https://www.gnu.org/software/make/manual/make.html) installed, then first build the binary with:
-
+Make sure to have [make](https://www.gnu.org/software/make/manual/make.html) and [cmake](https://cmake.org/) installed. Then first install the dependencies
 ```bash
-make clean && make build
+sudo apt install libgtest-dev googletest libomp-dev
 ```
 
-Now there is an `e-mcdp` executable placed in the `bin/` directory in the project root.
+And the you can install the program with following commands:
+```bash
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+```
+
+Now you have the `emcdp` executable installed and it can be run from the command line.
 
 The program provides a set of flags to operate it:
 
