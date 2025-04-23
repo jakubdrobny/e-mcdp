@@ -23,6 +23,8 @@ public:
   std::string windows_path;
   long long windows_size;
   long long windows_step;
+  bool run_tests = false;
+  bool show_help = false;
 
 private:
   Logger &logger;

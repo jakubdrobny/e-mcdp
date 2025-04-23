@@ -21,9 +21,11 @@ The program provides a set of flags to operate it:
 - `--o <name-of-results-file>` - results of the program will be written into this file, which will be located in the `data/output/` directory
 - `--windows.source <file|basic|dense>` - specifies the windows source of windows set
 - `--windows.path <path-to-your-windows-file>` - required with the `--windows.source file` flag, tells the program the location of the window set file
-- `--windows.size` - required with the `--windows.source <basic|dense>` flags, tells the program the size of windows to generate
-- `--windows.step` - required with the `--windows.source dense` flag, tells the program the shift when generating overlapping set of windows
+- `--windows.size <windows-size>` - required with the `--windows.source <basic|dense>` flags, tells the program the size of windows to generate
+- `--windows.step <windows-step>` - required with the `--windows.source dense` flag, tells the program the shift when generating overlapping set of windows
 - `--algorithm <naive|slow_bad|slow|fast_bad|fast>` - defaults to naive, is used to choose algorithm when evaluating windows
+- `--test` - if this flag is specified, all other flags (except `--help`) are ignored and all the tests in the `src/Tests` are ran and then the program quits
+- `--help` - if this flag is specified, all other flags are ignored and a help text will be shown
 
 From here you can either run the executable with flags manually or by using any of the `Makefile` directives:
 

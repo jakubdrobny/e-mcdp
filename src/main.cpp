@@ -13,14 +13,51 @@
 #include <unordered_map>
 #include <vector>
 
-#define RUN_TESTS 0
-
 Logger logger;
 
 int main(int argc, char *argv[]) {
   Timer timer;
+  logger = Logger();
 
-  if (RUN_TESTS) {
+  Args args(logger);
+  args.parse_args(argc, argv);
+
+  if (args.show_help) {
+    logger.info("The program provides a set of flags to operate it:");
+    logger.info("--r <path-to-your-ref-intervals-file>\t\t\t- REQUIRED, tells the program where to find the file with "
+                "reference annotation intervals");
+    logger.info("--q <path-to-your-query-intervals-file>\t\t- REQUIRED, tells the program where to find the file with "
+                "query annotation intervals");
+    logger.info(
+        "--chs <path-to-your-chromosome-sizes-file>\t\t- REQUIRED, tells the program where to find the file with "
+        "chromosome sizes");
+    logger.info("--log <name-of-log-file>\t\t\t\t- logs will be written into this file, which will be located in the "
+                "`data/logs/` directory");
+    logger.info(
+        "--o <name-of-results-file>\t\t\t\t- results of the program will be written into this file, which will be "
+        "located in the `data/output/` directory");
+    logger.info("--windows.source <file|basic|dense>\t\t\t- specifies the windows source of windows set");
+    logger.info("--windows.path <path-to-your-windows-file>\t\t- required with the `--windows.source file` flag, tells "
+                "the program the location of the window set file");
+    logger.info(
+        "--windows.size <windows-size>\t\t\t\t- required with the `--windows.source <basic|dense>` flags, tells the "
+        "program the size of windows to generate");
+    logger.info(
+        "--windows.step <windows-step>\t\t\t\t- required with the `--windows.source dense` flag, tells the program "
+        "the shift when generating overlapping set of windows");
+    logger.info("--algorithm <naive|slow_bad|slow|fast_bad|fast>\t- defaults to naive, is used to choose algorithm "
+                "when evaluating windows");
+    logger.info("--test\t\t\t\t\t\t- if this flag is specified, all other flags (except `--help`) are ignored and all "
+                "the tests "
+                "in the `src/Tests` are ran and then the program quits");
+    logger.info(
+        "--help\t\t\t\t\t\t- if this flag is specified, all other flags are ignored and a help text will be shown");
+    return 0;
+  }
+
+  args.debug_args();
+
+  if (args.run_tests) {
     ::testing::InitGoogleTest();
     if (RUN_ALL_TESTS()) {
       logger.error("Some tests have failed. Please see the log above.");
@@ -29,11 +66,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  logger = Logger();
-
-  Args args(logger);
-  args.parse_args(argc, argv);
-  args.debug_args();
   logger.info("Further logs will be in the file specified by the --o flag.");
 
   if (args.log_file_path != "")

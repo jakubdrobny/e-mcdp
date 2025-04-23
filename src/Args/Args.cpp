@@ -92,6 +92,10 @@ void Args::parse_args(int argc, char *argv[]) {
       } else {
         log_failed_to_parse_args(flag);
       }
+    } else if (flag == "--test") {
+      run_tests = true;
+    } else if (flag == "--help") {
+      show_help = true;
     } else {
       log_invalid_arg(flag);
     }
@@ -112,6 +116,8 @@ void Args::debug_args() {
   logger.debug("windows.path: " + windows_path);
   logger.debug("windows.size: " + std::to_string(windows_size));
   logger.debug("windows.step: " + std::to_string(windows_step));
+  logger.debug("run_tests: " + std::to_string(run_tests));
+  logger.debug("show_help: " + std::to_string(show_help));
 }
 
 void Args::log_failed_to_parse_args(const std::string &flag) {
@@ -125,6 +131,9 @@ void Args::log_invalid_arg(const std::string &flag) {
 }
 
 void Args::check_required_args() {
+  if (run_tests || show_help)
+    return;
+
   std::string missing_args;
   if (query_intervals_file_path.empty())
     missing_args += " --q";
