@@ -1,5 +1,6 @@
 #include "Stats.hpp"
 #include "../Helpers/Helpers.hpp"
+
 #include <cmath>
 
 Stats::Stats(WindowResult result) {
@@ -18,7 +19,7 @@ long double Stats::calculate_pvalue() { return calculate_joint_pvalue({this->pro
 long double Stats::calculate_mean() {
   long double mean = 0;
   for (size_t idx = 0; idx < this->probs.size(); idx++) {
-    mean += idx * this->probs[idx];
+    mean += idx * exp(this->probs[idx]);
   }
   return mean;
 }
@@ -26,7 +27,7 @@ long double Stats::calculate_mean() {
 long double Stats::calculate_variance() {
   long double variance = 0;
   for (size_t idx = 0; idx < this->probs.size(); idx++) {
-    variance += (idx - this->mean) * (idx - this->mean) * this->probs[idx];
+    variance += (idx - this->mean) * (idx - this->mean) * exp(this->probs[idx]);
   }
   return variance;
 }

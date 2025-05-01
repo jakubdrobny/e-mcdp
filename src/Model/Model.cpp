@@ -107,6 +107,10 @@ std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interva
   for (int k = 1; k <= m; k++) {
     next_line[k - 1] = {0, 0};
 
+    if (k % 500 == 0) {
+      logger.debug("Processing " + std::to_string(k) + "-th line out of " + std::to_string(m) + " rows of DP table...");
+    }
+
     for (int j = k; j <= m; j++) {
       long long gap = ref_intervals_augmented[j].begin - ref_intervals_augmented[j - 1].end;
       if (gap < 0) {
@@ -190,6 +194,11 @@ Model::eval_probs_single_chr_direct_new(const std::vector<Interval> &ref_interva
     std::vector<std::array<long double, 2>> next_line(m + 1, std::array<long double, 2>{});
     for (int k = 1; k <= m; k++) {
       next_line[k - 1] = {0, 0};
+
+      if (k % 500 == 0) {
+        logger.debug("Processing " + std::to_string(k) + "-th line out of " + std::to_string(m) +
+                     " rows of DP table...");
+      }
 
       for (int j = k; j <= m; j++) {
         long long gap = ref_intervals_augmented[j].begin - ref_intervals_augmented[j - 1].end;
