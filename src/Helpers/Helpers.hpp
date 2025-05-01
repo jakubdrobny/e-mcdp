@@ -60,7 +60,7 @@ std::vector<std::vector<long double>> binary_exponentiation(const std::vector<st
 
 std::array<std::array<long double, 2>, 2> binary_exponentiation(const std::array<std::array<long double, 2>, 2> &mat,
                                                                 long long power);
-std::vector<long double> joint_logprobs(const std::vector<long double> &probs_by_chr);
+std::vector<long double> joint_logprobs(const std::vector<std::vector<long double>> &probs_by_chr);
 
 // joins two sets of log probs
 MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2);

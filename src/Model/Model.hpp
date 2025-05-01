@@ -20,7 +20,7 @@ public:
   Model();
   Model(std::vector<Interval> ref_intervals, std::vector<Interval> query_intervals, ChrSizesMap chr_sizes_map);
 
-  long double eval_pvalue(long long overlap_count);
+  std::vector<long double> eval_probs(long long overlap_count);
 
   static std::vector<long double> eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
                                                                std::vector<Interval> query_intervals,

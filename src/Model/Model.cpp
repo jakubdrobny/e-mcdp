@@ -1,8 +1,9 @@
 #include "Model.hpp"
+#include "../Helpers/Helpers.hpp"
 #include "../Logger/Logger.hpp"
 #include "../MarkovChain/MarkovChain.hpp"
+
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <omp.h>
 
@@ -27,7 +28,7 @@ std::vector<Interval> Model::select_intervals_by_chr_name(std::vector<Interval> 
   return chr_intervals;
 }
 
-long double Model::eval_pvalue(long long overlap_count) {
+std::vector<long double> Model::eval_probs(long long overlap_count) {
   std::vector<std::vector<long double>> probs_by_chr(chr_sizes.size());
   std::vector<std::vector<Interval>> ref_intervals_by_chr(chr_sizes.size()), query_intervals_by_chr(chr_sizes.size());
 
@@ -39,8 +40,8 @@ long double Model::eval_pvalue(long long overlap_count) {
     query_intervals_by_chr[chr_sizes_idx] = Model::select_intervals_by_chr_name(query_intervals, query_idx, chr_name);
   }
 
-  // sometimes turned off for debugging
-  // #pragma omp parallel for
+// sometimes turned off for debugging
+#pragma omp parallel for
   for (size_t chr_sizes_idx = 0; chr_sizes_idx < chr_sizes.size(); chr_sizes_idx++) {
     std::vector<long double> probs(1);
     if (!query_intervals_by_chr[chr_sizes_idx].empty()) {
@@ -52,8 +53,7 @@ long double Model::eval_pvalue(long long overlap_count) {
     probs_by_chr[chr_sizes_idx] = probs;
   }
 
-  long double joint_pvalue = calculate_joint_pvalue(probs_by_chr, overlap_count);
-  return joint_pvalue;
+  return joint_logprobs(probs_by_chr);
 }
 
 std::vector<long double> Model::eval_probs_single_chr_direct(std::vector<Interval> ref_intervals,
