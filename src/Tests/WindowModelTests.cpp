@@ -200,6 +200,12 @@ TEST_F(WindowModelRunTest, SmallTest) {
       {"chr1", 3700, 5800}, {"chr1", 3750, 5850}, {"chr1", 3800, 5900}, {"chr1", 3850, 5950}, {"chr1", 3900, 6000},
       {"chr1", 3950, 6050}, {"chr1", 4000, 6100}, {"chr1", 4050, 6150}, {"chr1", 4100, 6200}, {"chr1", 4150, 6250},
       {"chr1", 4200, 6300}, {"chr1", 4250, 6350}, {"chr1", 4300, 6400}};
+  // i managed to isolate it to this subset of windows, but i cant figure out why only FAST produces only very
+  // slightly different pvalues to save my life
+  // std::vector<Interval> windows = {{"chr1", 3950, 6050}, {"chr1", 4000, 6100}, {"chr1", 4050, 6150},
+  //                                  {"chr1", 4100, 6200}, {"chr1", 4150, 6250}, {"chr1", 4200, 6200},
+  //                                  {"chr1", 4250, 6250}, {"chr1", 4300, 6250}, {"chr1", 4350, 6250},
+  //                                  {"chr1", 4400, 6250}, {"chr1", 4450, 6250}, {"chr1", 4500, 6250}};
   ChrSizesMap chr_sizes_map = {{"chr1", 10000}};
   std::vector<WindowResult> resultsNaive =
       WindowModel(windows, ref_ints, query_ints, chr_sizes_map, Algorithm::NAIVE).run();
