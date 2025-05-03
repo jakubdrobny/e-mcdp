@@ -177,11 +177,11 @@ std::vector<WindowResult> WindowModel::run() {
     } else if (algorithm == Algorithm::FAST_BAD) {
       chromosome_probs_by_window =
           probs_by_window_single_chr_smarter(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
-                                             query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
+                                             query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx], true);
     } else if (algorithm == Algorithm::FAST) {
       chromosome_probs_by_window =
-          probs_by_window_single_chr_smarter(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
-                                             query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx]);
+          probs_by_window_single_chr_smarter_new(windows_by_chr[chr_sizes_idx], ref_intervals_by_chr[chr_sizes_idx],
+                                                 query_intervals_by_chr[chr_sizes_idx], chr_sizes[chr_sizes_idx], true);
     } else {
       logger.error("invalid algorithm.");
       exit(1);
