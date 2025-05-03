@@ -372,7 +372,7 @@ std::vector<WindowResult> WindowModel::probs_by_window_single_chr_smarter_new(
 
   // 4.1 make a segment tree on top of the sections if should
   SegTree<Section> st =
-      use_segtree ? SegTree<Section>(join_sections_segtree, Section(), sections, markov_chain) : SegTree<Section>();
+      use_segtree ? SegTree<Section>(join_sections_new_segtree, Section(), sections, markov_chain) : SegTree<Section>();
 
   // 5. merge section probs for each window
   std::vector<WindowResult> probs_by_window(windows.size());

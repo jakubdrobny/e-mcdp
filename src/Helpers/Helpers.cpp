@@ -841,6 +841,15 @@ WindowSectionSplitResult split_windows_into_non_overlapping_sections(const std::
   return WindowSectionSplitResult(sections, spans);
 }
 
+long double log_multiply(long double log_x, long double log_y) {
+  const long double ld_inf = std::numeric_limits<long double>::max();
+  if (log_x == -ld_inf)
+    return log_x;
+  if (log_y == -ld_inf)
+    return log_y;
+  return log_x + log_y;
+}
+
 std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &markov_chain) {
   if (probs.size() != 2 || probs[0].size() != 2 || probs[1].size() != 2) {
     logger.error("invalid multiprobs or stationary_distribution "
@@ -862,14 +871,15 @@ std::vector<long double> merge_multi_probs(MultiProbs probs, const MarkovChain &
 
   for (size_t i : {0, 1}) {
     for (size_t idx = 0; idx < k; idx++) {
-      probs[i][0][idx] = exp(probs[i][0][idx]) + exp(probs[i][1][idx]);
+      probs[i][0][idx] = logsumexp({probs[i][0][idx], probs[i][1][idx]});
     }
   }
 
   StationaryDistribution stationary_distribution = markov_chain.get_stationary_distribution();
 
   for (size_t idx = 0; idx < k; idx++) {
-    res[idx] = log(stationary_distribution[0] * probs[0][0][idx] + stationary_distribution[1] * probs[1][0][idx]);
+    res[idx] = logsumexp({log_multiply(logl(stationary_distribution[0]), probs[0][0][idx]),
+                          log_multiply(logl(stationary_distribution[1]), probs[1][0][idx])});
   }
 
   return res;

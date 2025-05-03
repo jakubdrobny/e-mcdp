@@ -121,9 +121,9 @@ Section join_sections_segtree(const Section &section1, const Section &section2, 
 Section join_sections_new_segtree(const Section &section1, const Section &section2, const MarkovChain &markov_chain);
 
 bool compare_logprobs_vectors(const std::vector<long double> &a, const std::vector<long double> &b,
-                              long double epsilon = 1e-6);
+                              long double epsilon = 1e-12);
 
-bool compare_multiprobs(const MultiProbs &a, const MultiProbs &b, long double epsilon = 1e-6);
+bool compare_multiprobs(const MultiProbs &a, const MultiProbs &b, long double epsilon = 1e-12);
 
 std::vector<Interval> split_intervals_into_ones(const std::vector<Interval> &intervals);
 
