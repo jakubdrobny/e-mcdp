@@ -122,13 +122,14 @@ int main(int argc, char *argv[]) {
     WindowModel model(windows, ref_intervals, query_intervals, chr_sizes, args.algorithm);
     std::vector<WindowResult> results = model.run();
 
-    output.print("chr_name\tbegin\tend\toverlap_count\tp-value\tmean\tvariance\tstandard_deviation\tz-score\n");
+    output.print("chr_name\tbegin\tend\toverlap_count\tp-value\tp-value_adjusted\tmean\tvariance\tstandard_"
+                 "deviation\tz-score\n");
     for (WindowResult result : results) {
       Stats stats(result);
       output.print(std::format("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n", stats.get_window().get_chr_name(),
                                stats.get_window().get_begin(), stats.get_window().get_end(), result.get_overlap_count(),
-                               stats.get_pvalue(), stats.get_mean(), stats.get_variance(),
-                               stats.get_standard_deviation(), stats.get_zscore()));
+                               stats.get_pvalue(), std::min(1.L, stats.get_pvalue() * results.size()), stats.get_mean(),
+                               stats.get_variance(), stats.get_standard_deviation(), stats.get_zscore()));
     }
 
     long double duration = timer.elapsed<std::chrono::milliseconds>();
