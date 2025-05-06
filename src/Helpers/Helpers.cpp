@@ -93,9 +93,13 @@ std::vector<Interval> load_windows(Args &args, std::unordered_map<std::string, l
     for (std::pair<std::string, long long> chr : chr_sizes) {
       std::string chr_name = chr.first;
       long long chr_size = chr.second;
-      long long l = 0, r = args.windows_size;
-      while (r < chr_size) {
+      long long l = 0, r = std::min(chr_size, args.windows_size);
+      while (1) {
         windows.push_back({chr_name, l, r});
+        if (r >= chr_size) {
+          break;
+        }
+
         if (args.windows_source == "basic") {
           l = r;
           r = std::min(chr_size, r + args.windows_size);
