@@ -94,7 +94,7 @@ std::vector<Interval> load_windows(Args &args, std::unordered_map<std::string, l
       std::string chr_name = chr.first;
       long long chr_size = chr.second;
       long long l = 0, r = args.windows_size;
-      while (l < chr_size) {
+      while (r < chr_size) {
         windows.push_back({chr_name, l, r});
         if (args.windows_source == "basic") {
           l = r;
