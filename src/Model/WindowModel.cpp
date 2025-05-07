@@ -4,7 +4,6 @@
 #include "../Results/WindowResult.hpp"
 #include "../SegTree/SegTree.hpp"
 #include <algorithm>
-#include <iostream>
 #include <set>
 
 WindowModel::WindowModel() {}

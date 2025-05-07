@@ -1,5 +1,7 @@
 #include "SegTree.hpp"
 #include "../Interval/Section.hpp"
+#include <iostream>
+#include <queue>
 
 template <class T> SegTree<T>::SegTree() {}
 
@@ -35,6 +37,77 @@ SegTree<T>::SegTree(SegTreeOperation operation, T neutral_element, const std::ve
   this->init(values.size());
 
   this->_build(values, 0, 0, this->N);
+}
+
+template <class T> void SegTree<T>::dump() {
+  if (this->t.empty()) {
+    std::cout << "DUMPING SEGTREE (EMPTY)\n=========\n";
+    std::cout << "DUMP FINISHED\n";
+    return;
+  }
+
+  std::queue<std::tuple<int, int, int>> q_bfs;
+  q_bfs.push({0, 0, this->N});
+
+  std::cout << "DUMPING SEGTREE\n=========\n";
+
+  int nodes_in_current_level = 1;
+  int nodes_in_next_level = 0;
+
+  while (!q_bfs.empty()) {
+    auto [x, lx, rx] = q_bfs.front();
+    q_bfs.pop();
+
+    if (x >= (int)this->t.size()) {
+      std::cerr << "SegTree::dump() Error: Attempted to access invalid index " << x << " (t.size() = " << this->t.size()
+                << "). Skipping." << std::endl;
+      std::cout << "[INVALID_IDX:" << x << "] ";
+      nodes_in_current_level--;
+      if (nodes_in_current_level == 0) {
+        std::cout << "\n";
+        nodes_in_current_level = nodes_in_next_level;
+        nodes_in_next_level = 0;
+      }
+      continue;
+    }
+
+    std::cout << this->t[x] << " (idx:" << x << " [" << lx << "," << rx << ")) ";
+
+    nodes_in_current_level--;
+
+    if (rx - lx > 1) {
+      int m = lx + (rx - lx) / 2;
+      int left_child_idx = 2 * x + 1;
+      int right_child_idx = 2 * x + 2;
+
+      if (right_child_idx < (int)this->t.size()) {
+        q_bfs.push({left_child_idx, lx, m});
+        nodes_in_next_level++;
+        q_bfs.push({right_child_idx, m, rx});
+        nodes_in_next_level++;
+      } else {
+        if (left_child_idx < (int)this->t.size()) {
+          q_bfs.push({left_child_idx, lx, m});
+          nodes_in_next_level++;
+          std::cerr << "SegTree::dump() Warning: Node " << x << " (range [" << lx << "," << rx << ")) has left child "
+                    << left_child_idx << " but right child " << right_child_idx
+                    << " is out of bounds (t.size()=" << this->t.size() << ").\n";
+        } else {
+          std::cerr << "SegTree::dump() Warning: Internal node " << x << " (range [" << lx << "," << rx
+                    << ")) has children indices " << left_child_idx << ", " << right_child_idx
+                    << " which are out of bounds (t.size()=" << this->t.size() << ").\n";
+        }
+      }
+    }
+
+    if (nodes_in_current_level == 0) {
+      std::cout << "\n";
+      nodes_in_current_level = nodes_in_next_level;
+      nodes_in_next_level = 0;
+    }
+  }
+
+  std::cout << "DUMP FINISHED\n";
 }
 
 template <class T> T SegTree<T>::_query(int l, int r, int x, int lx, int rx) {

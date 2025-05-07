@@ -7,7 +7,6 @@
 #include <array>
 #include <cmath>
 #include <fstream>
-#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -1049,11 +1048,8 @@ Section join_sections_new(const Section &section1, const Section &section2, cons
     Interval first_ref_section2 = ref_ints2.front();
     ref_intervals = {
         Interval(last_ref_section1.get_chr_name(), last_ref_section1.get_begin(), first_ref_section2.get_end())};
-    long long new_start = section1.get_begin();
-    if (ref_ints1.size() > 1)
-      new_start = ref_ints1.back().get_begin();
-    middle_probs =
-        Model::eval_probs_single_chr_direct_new(ref_intervals, new_start, first_ref_section2.get_end(), markov_chain);
+    middle_probs = Model::eval_probs_single_chr_direct_new(ref_intervals, last_ref_section1.get_begin(),
+                                                           first_ref_section2.get_end(), markov_chain);
   }
 
   if (query_overflows) {

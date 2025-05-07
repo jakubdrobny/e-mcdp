@@ -16,6 +16,8 @@ public:
 
   void set(int idx, T el);
   T query(int l, int r); // returns combined elements from interval [l, r) with the operation provided
+  void dump();
+
 private:
   int N;
   SegTreeOperation op;
