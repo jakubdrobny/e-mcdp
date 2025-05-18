@@ -31,6 +31,7 @@ The program provides a set of flags to operate it:
 - `--windows.size <windows-size>` - required with the `--windows.source <basic|dense>` flags, tells the program the size of windows to generate
 - `--windows.step <windows-step>` - required with the `--windows.source dense` flag, tells the program the shift when generating overlapping set of windows
 - `--algorithm <naive|slow_bad|slow|fast_bad|fast>` - defaults to naive, is used to choose algorithm when evaluating windows
+- `--significance <enrichment|depletion|combined>` - defaults to enrichment, is used to choose whether to measure enrichment or depletion, combined measures enrichment if observed overlap is larger than mean and depletion otherwise
 - `--test` - if this flag is specified, all other flags (except `--help`) are ignored and all the tests in the `src/Tests` are ran and then the program quits
 - `--help` - if this flag is specified, all other flags are ignored and a help text will be shown
 

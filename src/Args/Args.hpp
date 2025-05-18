@@ -19,6 +19,7 @@ public:
   std::string log_file_path;
   Statistic statistic = Statistic::OVERLAPS;
   Algorithm algorithm = Algorithm::NAIVE;
+  Significance significance = Significance::ENRICHMENT;
   std::string windows_source;
   std::string windows_path;
   long long windows_size;

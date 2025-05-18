@@ -92,6 +92,17 @@ void Args::parse_args(int argc, char *argv[]) {
       } else {
         log_failed_to_parse_args(flag);
       }
+    } else if (flag == "--significance") {
+      if (i + 1 < argc) {
+        std::string significanceString = argv[++i];
+        if (!validate_enum(significanceToEnum, significanceString))
+          log_failed_to_parse_args(flag);
+
+        significance = significanceToEnum.at(significanceString);
+        logger.info("Parsed --significance" + significanceString);
+      } else {
+        log_failed_to_parse_args(flag);
+      }
     } else if (flag == "--test") {
       run_tests = true;
     } else if (flag == "--help") {
@@ -112,6 +123,7 @@ void Args::debug_args() {
   logger.debug("chr_size_file_path: " + chr_size_file_path);
   logger.debug("statistic: " + statisticToString.at(statistic));
   logger.debug("algorithm: " + algorithmToString.at(algorithm));
+  logger.debug("significance: " + significanceToString.at(significance));
   logger.debug("windows.source: " + windows_source);
   logger.debug("windows.path: " + windows_path);
   logger.debug("windows.size: " + std::to_string(windows_size));
