@@ -555,15 +555,29 @@ MultiProbs joint_logprobs(const MultiProbs &probs1, const MultiProbs &probs2) {
 
 // calculate joint p-value for a given `overlap_count`.
 // `p_values_by_level` should contain log-values
-long double calculate_joint_pvalue(const std::vector<std::vector<long double>> &probs_by_chr, long long overlap_count) {
+// if significance is enrichment calculates right tail, otherwise calculates left tail
+// combined is not allowed
+long double calculate_joint_pvalue(const std::vector<std::vector<long double>> &probs_by_chr, long long overlap_count,
+                                   Significance significance) {
+  if (significance == Significance::COMBINED) {
+    logger.error("Significance cannot be combined when calculating joint p-value.");
+    exit(1);
+  }
+
   if (overlap_count < 0 || probs_by_chr.empty() || (probs_by_chr.size() == 1 && probs_by_chr[0].empty()))
     return 1;
 
   std::vector<long double> logprobs = joint_logprobs(probs_by_chr);
-  if (overlap_count >= (long long)logprobs.size())
+  bool is_enrichment = significance == Significance::ENRICHMENT;
+  if (is_enrichment && overlap_count >= (long long)logprobs.size())
     return 0;
 
-  long double result = exp(logsumexp(std::vector<long double>(logprobs.begin() + overlap_count, logprobs.end())));
+  std::vector<long double> trimmed_probs;
+  size_t start_idx = is_enrichment ? overlap_count : 0, end_idx = is_enrichment ? logprobs.size() : overlap_count + 1;
+  for (size_t idx = start_idx; idx < end_idx; idx++) {
+    trimmed_probs.push_back(logprobs[idx]);
+  }
+  long double result = exp(logsumexp(trimmed_probs));
   return result;
 }
 

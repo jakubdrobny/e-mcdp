@@ -3,18 +3,30 @@
 
 #include <cmath>
 
-Stats::Stats(WindowResult result) {
+Stats::Stats(WindowResult result, Significance significance) {
+  this->significance = significance;
   this->window = result.get_window();
   this->probs = result.get_probs();
   this->overlap_count = result.get_overlap_count();
-  this->pvalue = this->calculate_pvalue();
   this->mean = this->calculate_mean();
+  // mean and overlap count need to be calculated before p-value so we can choose enrichment or depletion
+  this->pvalue = this->calculate_pvalue();
   this->variance = this->calculate_variance();
   this->standard_deviation = this->calculate_standard_deviation();
   this->zscore = this->calculate_zscore();
 }
 
-long double Stats::calculate_pvalue() { return calculate_joint_pvalue({this->probs}, this->overlap_count); }
+long double Stats::calculate_pvalue() {
+  Significance used_significance = this->significance;
+  if (used_significance == Significance::COMBINED) {
+    if (this->mean < this->overlap_count) {
+      used_significance = Significance::ENRICHMENT;
+    } else {
+      used_significance = Significance::DEPLETION;
+    }
+  }
+  return calculate_joint_pvalue({this->probs}, this->overlap_count, used_significance);
+}
 
 long double Stats::calculate_mean() {
   long double mean = 0;
@@ -44,3 +56,4 @@ long double Stats::get_mean() { return this->mean; }
 long double Stats::get_variance() { return this->variance; }
 long double Stats::get_standard_deviation() { return this->standard_deviation; }
 long double Stats::get_zscore() { return this->zscore; };
+Significance Stats::get_significance() { return this->significance; }
