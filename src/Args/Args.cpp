@@ -88,7 +88,7 @@ void Args::parse_args(int argc, char *argv[]) {
           log_failed_to_parse_args(flag);
 
         statistic = statisticToEnum.at(statisticString);
-        logger.info("Parsed --statistic " + statisticString);
+        logger.info("Parsed --statistic: " + statisticString);
       } else {
         log_failed_to_parse_args(flag);
       }
@@ -99,7 +99,7 @@ void Args::parse_args(int argc, char *argv[]) {
           log_failed_to_parse_args(flag);
 
         significance = significanceToEnum.at(significanceString);
-        logger.info("Parsed --significance" + significanceString);
+        logger.info("Parsed --significance: " + significanceString);
       } else {
         log_failed_to_parse_args(flag);
       }
