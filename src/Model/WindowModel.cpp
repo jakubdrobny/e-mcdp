@@ -157,8 +157,8 @@ std::vector<WindowResult> WindowModel::run() {
 
   std::vector<WindowResult> probs_by_window;
 
-  // turn off for debugging
-  // #pragma omp parallel for
+// turn off for debugging
+#pragma omp parallel for
   for (size_t chr_sizes_idx = 0; chr_sizes_idx < chr_sizes.size(); chr_sizes_idx++) {
     std::vector<WindowResult> chromosome_probs_by_window;
     if (algorithm == Algorithm::NAIVE) {

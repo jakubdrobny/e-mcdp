@@ -50,6 +50,10 @@ These commands produce the logs in the file `example_data/log.txt` and the outpu
 
 Note that these commands first compile the program, therefore you need to have the dependencies installed.
 
+## Test data
+
+The `test_data` directory contains test data used by the tests built into the code. The `g24` annotations and chromosome sizes are from the `04-synthetic-data-time-mem` directory in the [MCDP reproducibility repository](https://github.com/fmfi-compbio/mc-overlaps-reproducibility) from the MCDP study [1] and the `ref/query_1000_1.tsv` and `genomeSize.tsv` are from the [MCDP2 reproducibility repository](https://github.com/fmfi-compbio/mcdp2-reproducibility) from the MCDP2 study [2]. 
+
 ## References
 
 > [1] Askar Gafurov, Bronislava Brejová, Paul Medvedev.

@@ -259,14 +259,14 @@ TEST_F(WindowModelRunTest, SmallTest2) {
 
 TEST(LargeWindowModelTest, LargeTests) {
   Args args1(logger);
-  args1.ref_intervals_file_path = "data/02-synth-data/g24_8.ref.tsv";
-  args1.query_intervals_file_path = "data/02-synth-data/g24_8.query.tsv";
-  args1.chr_size_file_path = "data/02-synth-data/g24_sizes.tsv";
+  args1.ref_intervals_file_path = "test_data/g24_8.ref.tsv";
+  args1.query_intervals_file_path = "test_data/g24_8.query.tsv";
+  args1.chr_size_file_path = "test_data/g24_sizes.tsv";
 
   Args args2(logger);
-  args2.ref_intervals_file_path = "data/04-synthetic-data/ref_1000_1.tsv";
-  args2.query_intervals_file_path = "data/04-synthetic-data/query_1000_1.tsv";
-  args2.chr_size_file_path = "data/04-synthetic-data/genomeSize.tsv";
+  args2.ref_intervals_file_path = "test_data/ref_1000_1.tsv";
+  args2.query_intervals_file_path = "test_data/query_1000_1.tsv";
+  args2.chr_size_file_path = "test_data/genomeSize.tsv";
 
   std::vector<std::vector<std::pair<long long, long long>>> window_confs{
       {{2000, 1000}, {10000, 1000}, {200, 100}, {750, 150}, {2100, 140}}, {{1000000, 10000}}};
