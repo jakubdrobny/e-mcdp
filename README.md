@@ -37,7 +37,7 @@ The program provides a set of flags to operate it:
 - `--test` - if this flag is specified, all other flags (except `--help`) are ignored and all the tests in the `src/Tests` are ran and then the program quits
 - `--help` - if this flag is specified, all other flags are ignored and a help text will be shown
 
-# Example usage
+## Example usage
 
 In the `example_data/` directory we include sample annotations and their chromsome sizes. Note that these annotations are the example annotations from the [MCDP repository](https://github.com/fmfi-compbio/mc-overlaps).
 
