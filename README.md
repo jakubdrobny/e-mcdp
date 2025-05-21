@@ -4,6 +4,8 @@ A tool built on top of mc-overlaps [1] (mcdp2 [2] predecessor), allowing for col
 
 ## How to use this?
 
+You can either use the binary in the `bin/` directory or install it manually:
+
 Make sure to have [make](https://www.gnu.org/software/make/manual/make.html) and [cmake](https://cmake.org/) installed. Then first install the dependencies
 ```bash
 sudo apt install libgtest-dev googletest libomp-dev
@@ -34,6 +36,10 @@ The program provides a set of flags to operate it:
 - `--significance <enrichment|depletion|combined>` - defaults to enrichment, is used to choose whether to measure enrichment or depletion, combined measures enrichment if observed overlap is larger than mean and depletion otherwise
 - `--test` - if this flag is specified, all other flags (except `--help`) are ignored and all the tests in the `src/Tests` are ran and then the program quits
 - `--help` - if this flag is specified, all other flags are ignored and a help text will be shown
+
+# Example usage
+
+In the `example_data/` directory we include sample annotations and their chromsome sizes. Note that these annotations are the example annotations from the [MCDP repository](https://github.com/fmfi-compbio/mc-overlaps).
 
 ## References
 
