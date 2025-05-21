@@ -41,6 +41,13 @@ The program provides a set of flags to operate it:
 
 In the `example_data/` directory we include sample annotations and their chromsome sizes. Note that these annotations are the example annotations from the [MCDP repository](https://github.com/fmfi-compbio/mc-overlaps).
 
+To simplify the use of the program for the example data, one can you use the commands provided in the `Makefile`: 
+ - `run_sample` - performs genome wide analysis
+ - `run_sample_basic_windows WINDOW_SIZE=<your-window-size>` - performs window analysis for a set of adjacent windows defined by a window size
+ - `run_sample_dense_windows WINDOW_SIZE=<your-window-size> WINDOW_STEP=<your-window-step>` - performs window analysis for a set of windows defined by a window size and a window step
+
+These commands produce the logs in the file `example_data/log.txt` and the output in the file `example_data/output.tsv`. Appending `_console` to the `Makefile` commands will redirect the logs and the output to the console. 
+
 ## References
 
 > [1] Askar Gafurov, Bronislava Brejová, Paul Medvedev.
