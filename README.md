@@ -46,7 +46,9 @@ To simplify the use of the program for the example data, one can you use the com
  - `run_sample_basic_windows WINDOW_SIZE=<your-window-size>` - performs window analysis for a set of adjacent windows defined by a window size
  - `run_sample_dense_windows WINDOW_SIZE=<your-window-size> WINDOW_STEP=<your-window-step>` - performs window analysis for a set of windows defined by a window size and a window step
 
-These commands produce the logs in the file `example_data/log.txt` and the output in the file `example_data/output.tsv`. Appending `_console` to the `Makefile` commands will redirect the logs and the output to the console. 
+These commands produce the logs in the file `example_data/log.txt` and the output in the file `example_data/output.tsv`. Appending `_console` to the `Makefile` commands will redirect the logs and the output to the console.
+
+Note that these commands first compile the program, therefore you need to have the dependencies installed.
 
 ## References
 
